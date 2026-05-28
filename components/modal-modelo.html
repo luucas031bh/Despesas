@@ -1,0 +1,91 @@
+<div class="modal-backdrop" id="modal-modelo-backdrop" hidden>
+  <div class="modal modal--wide" role="dialog" aria-labelledby="modal-modelo-titulo">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-modelo-titulo">Novo modelo</h2>
+      <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-modelo" aria-label="Fechar">✕</button>
+    </div>
+    <form id="form-modelo" class="modal__body">
+      <input type="hidden" name="area" id="modelo-area" value="casa" />
+      <div class="form-row">
+        <div class="form-group">
+          <label for="modelo-nome">Nome da despesa *</label>
+          <input class="form-control" id="modelo-nome" name="nome" required />
+        </div>
+        <div class="form-group">
+          <label for="modelo-categoria">Categoria *</label>
+          <select class="form-control" id="modelo-categoria" name="categoria" required></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="modelo-tipo">Tipo *</label>
+          <select class="form-control" id="modelo-tipo" name="tipo" required>
+            <option value="fixa_recorrente">Fixa recorrente</option>
+            <option value="fixa_parcelada">Fixa parcelada</option>
+            <option value="recorrente_variavel">Recorrente variável</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="modelo-valor_base">Valor base (R$)</label>
+          <input class="form-control" id="modelo-valor_base" name="valor_base" type="text" inputmode="decimal" placeholder="0,00" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="modelo-dia_vencimento">Dia vencimento</label>
+          <input class="form-control" id="modelo-dia_vencimento" name="dia_vencimento" type="number" min="1" max="31" value="10" />
+        </div>
+        <div class="form-group">
+          <label for="modelo-data_inicio">Início (YYYY-MM) *</label>
+          <input class="form-control" id="modelo-data_inicio" name="data_inicio" type="month" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="modelo-total_parcelas">Total parcelas (0 = sem fim)</label>
+          <input class="form-control" id="modelo-total_parcelas" name="total_parcelas" type="number" min="0" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="modelo-parcela_atual">Parcela atual</label>
+          <input class="form-control" id="modelo-parcela_atual" name="parcela_atual" type="number" min="1" value="1" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="modelo-data_fim">Fim (YYYY-MM, opcional)</label>
+        <input class="form-control" id="modelo-data_fim" name="data_fim" type="month" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="modelo-empresa">Empresa / fornecedor</label>
+          <input class="form-control" id="modelo-empresa" name="empresa" />
+        </div>
+        <div class="form-group">
+          <label for="modelo-recebedor">Recebedor</label>
+          <input class="form-control" id="modelo-recebedor" name="recebedor" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="modelo-telefone">Telefone</label>
+          <input class="form-control" id="modelo-telefone" name="telefone" />
+        </div>
+        <div class="form-group">
+          <label for="modelo-chave_pix">Chave PIX</label>
+          <input class="form-control" id="modelo-chave_pix" name="chave_pix" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="modelo-link_boleto">Link boleto</label>
+        <input class="form-control" id="modelo-link_boleto" name="link_boleto" type="url" />
+      </div>
+      <div class="form-group">
+        <label for="modelo-observacoes">Observações</label>
+        <textarea class="form-control" id="modelo-observacoes" name="observacoes" rows="2"></textarea>
+      </div>
+    </form>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" id="btn-cancel-modelo">Cancelar</button>
+      <button type="submit" form="form-modelo" class="btn btn--primary">Salvar modelo</button>
+    </div>
+  </div>
+</div>

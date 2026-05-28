@@ -1,0 +1,48 @@
+<div class="modal-backdrop" id="modal-operacional-backdrop" hidden>
+  <div class="modal" role="dialog">
+    <div class="modal__header">
+      <h2 class="modal__title">+ Novo gasto</h2>
+      <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-op" aria-label="Fechar">✕</button>
+    </div>
+    <form id="form-operacional" class="modal__body">
+      <input type="hidden" name="data" />
+      <div class="form-group">
+        <label for="op-valor">Valor (R$) *</label>
+        <input class="form-control" id="op-valor" name="valor" required inputmode="decimal" placeholder="0,00" />
+      </div>
+      <div class="form-group">
+        <label for="op-categoria">Categoria *</label>
+        <select class="form-control" id="op-categoria" name="categoria" required>
+          <option value="gasolina">Gasolina</option>
+          <option value="alimentacao">Alimentação</option>
+          <option value="cafe">Café</option>
+          <option value="marmita">Marmita</option>
+          <option value="lanche">Lanche</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Método de pagamento</label>
+        <select class="form-control" name="metodo_pagamento">
+          <option value="pix">PIX</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao_debito">Débito</option>
+          <option value="cartao_credito">Crédito</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="op-descricao">Descrição</label>
+        <input class="form-control" id="op-descricao" name="descricao" placeholder="Ex: Shell posto centro" />
+      </div>
+      <div class="form-group">
+        <label for="op-responsavel">Responsável</label>
+        <input class="form-control" id="op-responsavel" name="responsavel" placeholder="Nome" />
+      </div>
+    </form>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost">Cancelar</button>
+      <button type="submit" form="form-operacional" class="btn btn--adny">Salvar →</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ADNY Finance — controle financeiro pessoal e operacional" />
+  <title>ADNY Finance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header__brand">ADNY Finance</div>
+      <div class="app-header__meta">
+        <span class="app-header__mes" id="header-mes">—</span>
+        <span id="header-area-label">Casa</span>
+        <span>v<span id="header-version">1.0.0</span></span>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <aside class="app-sidebar" id="app-sidebar">
+        <nav class="nav-list">
+          <a href="#" class="nav-item nav-item--casa is-active" data-rota="casa">
+            <i data-lucide="home"></i> Casa
+          </a>
+          <a href="#" class="nav-item nav-item--adny" data-rota="adny">
+            <i data-lucide="briefcase"></i> ADNY
+          </a>
+          <a href="#" class="nav-item" data-rota="operacional">
+            <i data-lucide="zap"></i> Gasto rápido
+          </a>
+          <div class="nav-divider"></div>
+          <a href="#" class="nav-item" data-rota="relatorios">
+            <i data-lucide="bar-chart-2"></i> Relatórios
+          </a>
+          <a href="#" class="nav-item" data-rota="config">
+            <i data-lucide="settings"></i> Configurações
+          </a>
+        </nav>
+      </aside>
+
+      <main class="app-main">
+        <div class="app-main__inner" id="app-content" role="main">
+          <p>Carregando…</p>
+        </div>
+      </main>
+    </div>
+
+    <nav class="app-bottom-nav" aria-label="Navegação mobile">
+      <a href="#" class="bottom-nav-item bottom-nav-item--casa is-active" data-rota="casa">
+        <i data-lucide="home"></i> Casa
+      </a>
+      <a href="#" class="bottom-nav-item bottom-nav-item--adny" data-rota="adny">
+        <i data-lucide="briefcase"></i> ADNY
+      </a>
+      <a href="#" class="bottom-nav-item" data-rota="operacional">
+        <i data-lucide="zap"></i> Rápido
+      </a>
+      <a href="#" class="bottom-nav-item" data-rota="relatorios">
+        <i data-lucide="bar-chart-2"></i> Relat.
+      </a>
+      <a href="#" class="bottom-nav-item" data-rota="config">
+        <i data-lucide="settings"></i> Config
+      </a>
+    </nav>
+  </div>
+
+  <div class="loading-overlay" id="loading-overlay" hidden>
+    <p>Carregando…</p>
+  </div>
+  <div class="toast-container" id="toast-container"></div>
+  <div id="modals-host">
+    <!-- Modais embutidos para funcionar sem fetch (GitHub Pages / serve local) -->
+    <div class="modal-backdrop" id="modal-modelo-backdrop" hidden>
+      <div class="modal modal--wide" role="dialog" aria-labelledby="modal-modelo-titulo">
+        <div class="modal__header">
+          <h2 class="modal__title" id="modal-modelo-titulo">Novo modelo</h2>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-modelo" aria-label="Fechar">✕</button>
+        </div>
+        <form id="form-modelo" class="modal__body">
+          <input type="hidden" name="area" id="modelo-area" value="casa" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modelo-nome">Nome da despesa *</label>
+              <input class="form-control" id="modelo-nome" name="nome" required />
+            </div>
+            <div class="form-group">
+              <label for="modelo-categoria">Categoria *</label>
+              <select class="form-control" id="modelo-categoria" name="categoria" required></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modelo-tipo">Tipo *</label>
+              <select class="form-control" id="modelo-tipo" name="tipo" required>
+                <option value="fixa_recorrente">Fixa recorrente</option>
+                <option value="fixa_parcelada">Fixa parcelada</option>
+                <option value="recorrente_variavel">Recorrente variável</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modelo-valor_base">Valor base (R$)</label>
+              <input class="form-control" id="modelo-valor_base" name="valor_base" type="text" inputmode="decimal" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modelo-dia_vencimento">Dia vencimento</label>
+              <input class="form-control" id="modelo-dia_vencimento" name="dia_vencimento" type="number" min="1" max="31" value="10" />
+            </div>
+            <div class="form-group">
+              <label for="modelo-data_inicio">Início *</label>
+              <input class="form-control" id="modelo-data_inicio" name="data_inicio" type="month" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modelo-total_parcelas">Total parcelas (0 = sem fim)</label>
+              <input class="form-control" id="modelo-total_parcelas" name="total_parcelas" type="number" min="0" value="0" />
+            </div>
+            <div class="form-group">
+              <label for="modelo-parcela_atual">Parcela atual</label>
+              <input class="form-control" id="modelo-parcela_atual" name="parcela_atual" type="number" min="1" value="1" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="modelo-data_fim">Fim (opcional)</label>
+            <input class="form-control" id="modelo-data_fim" name="data_fim" type="month" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modelo-empresa">Empresa / fornecedor</label>
+              <input class="form-control" id="modelo-empresa" name="empresa" />
+            </div>
+            <div class="form-group">
+              <label for="modelo-recebedor">Recebedor</label>
+              <input class="form-control" id="modelo-recebedor" name="recebedor" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modelo-telefone">Telefone</label>
+              <input class="form-control" id="modelo-telefone" name="telefone" />
+            </div>
+            <div class="form-group">
+              <label for="modelo-chave_pix">Chave PIX</label>
+              <input class="form-control" id="modelo-chave_pix" name="chave_pix" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="modelo-link_boleto">Link boleto</label>
+            <input class="form-control" id="modelo-link_boleto" name="link_boleto" type="url" />
+          </div>
+          <div class="form-group">
+            <label for="modelo-observacoes">Observações</label>
+            <textarea class="form-control" id="modelo-observacoes" name="observacoes" rows="2"></textarea>
+          </div>
+        </form>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="btn-cancel-modelo">Cancelar</button>
+          <button type="submit" form="form-modelo" class="btn btn--primary">Salvar modelo</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="modal-pagar-backdrop" hidden>
+      <div class="modal" role="dialog">
+        <div class="modal__header">
+          <h2 class="modal__title">Registrar pagamento</h2>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-pagar" aria-label="Fechar">✕</button>
+        </div>
+        <form id="form-pagar" class="modal__body">
+          <p id="pagar-nome" style="font-weight:600;margin-bottom:1rem"></p>
+          <div class="form-group">
+            <label for="pagar-valor">Valor pago (R$) *</label>
+            <input class="form-control" id="pagar-valor" name="valor" required inputmode="decimal" />
+          </div>
+          <div class="form-group">
+            <label for="pagar-data_pagamento">Data pagamento *</label>
+            <input class="form-control" id="pagar-data_pagamento" name="data_pagamento" type="date" required />
+          </div>
+          <div class="form-group">
+            <label for="pagar-metodo">Método *</label>
+            <select class="form-control" id="pagar-metodo" name="metodo_pagamento" required>
+              <option value="pix">PIX</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao_debito">Cartão débito</option>
+              <option value="cartao_credito">Cartão crédito</option>
+              <option value="boleto">Boleto</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+        </form>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="btn-cancel-pagar">Cancelar</button>
+          <button type="submit" form="form-pagar" class="btn btn--primary">Confirmar pagamento</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="modal-operacional-backdrop" hidden>
+      <div class="modal" role="dialog">
+        <div class="modal__header">
+          <h2 class="modal__title">+ Novo gasto</h2>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-op" aria-label="Fechar">✕</button>
+        </div>
+        <form id="form-operacional" class="modal__body">
+          <input type="hidden" name="data" />
+          <div class="form-group">
+            <label for="op-valor">Valor (R$) *</label>
+            <input class="form-control" id="op-valor" name="valor" required inputmode="decimal" />
+          </div>
+          <div class="form-group">
+            <label for="op-categoria">Categoria *</label>
+            <select class="form-control" id="op-categoria" name="categoria" required>
+              <option value="gasolina">Gasolina</option>
+              <option value="alimentacao">Alimentação</option>
+              <option value="cafe">Café</option>
+              <option value="marmita">Marmita</option>
+              <option value="lanche">Lanche</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Método</label>
+            <select class="form-control" name="metodo_pagamento">
+              <option value="pix">PIX</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao_debito">Débito</option>
+              <option value="cartao_credito">Crédito</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="op-descricao">Descrição</label>
+            <input class="form-control" id="op-descricao" name="descricao" />
+          </div>
+          <div class="form-group">
+            <label for="op-responsavel">Responsável</label>
+            <input class="form-control" id="op-responsavel" name="responsavel" />
+          </div>
+        </form>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="btn-cancel-op">Cancelar</button>
+          <button type="submit" form="form-operacional" class="btn btn--adny">Salvar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('header-version').textContent = '1.0.0';
+  </script>
+  <script src="config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/modelos.js"></script>
+  <script src="js/lancamentos.js"></script>
+  <script src="js/dashboard-casa.js"></script>
+  <script src="js/dashboard-adny.js"></script>
+  <script src="js/operacional.js"></script>
+  <script src="js/relatorios.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+    document.addEventListener('click', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

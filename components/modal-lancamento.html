@@ -1,0 +1,34 @@
+<div class="modal-backdrop" id="modal-pagar-backdrop" hidden>
+  <div class="modal" role="dialog" aria-labelledby="modal-pagar-titulo">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-pagar-titulo">Registrar pagamento</h2>
+      <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-pagar" aria-label="Fechar">✕</button>
+    </div>
+    <form id="form-pagar" class="modal__body">
+      <p id="pagar-nome" style="font-weight:600;margin-bottom:1rem"></p>
+      <div class="form-group">
+        <label for="pagar-valor">Valor pago (R$) *</label>
+        <input class="form-control" id="pagar-valor" name="valor" required inputmode="decimal" />
+      </div>
+      <div class="form-group">
+        <label for="pagar-data_pagamento">Data pagamento *</label>
+        <input class="form-control" id="pagar-data_pagamento" name="data_pagamento" type="date" required />
+      </div>
+      <div class="form-group">
+        <label for="pagar-metodo">Método *</label>
+        <select class="form-control" id="pagar-metodo" name="metodo_pagamento" required>
+          <option value="pix">PIX</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao_debito">Cartão débito</option>
+          <option value="cartao_credito">Cartão crédito</option>
+          <option value="boleto">Boleto</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+    </form>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" id="btn-cancel-pagar">Cancelar</button>
+      <button type="submit" form="form-pagar" class="btn btn--primary">Confirmar pagamento</button>
+    </div>
+  </div>
+</div>

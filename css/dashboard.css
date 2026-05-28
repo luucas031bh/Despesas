@@ -1,0 +1,220 @@
+/**
+ * ADNY Finance — dashboard.css
+ * Cards de resumo, lista de despesas com accordion.
+ */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.summary-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-card__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.summary-card__value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-card__sub {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.summary-card--pagas .summary-card__value { color: var(--color-pago); }
+.summary-card--pendentes .summary-card__value { color: var(--color-aberto); }
+.summary-card--vencidas .summary-card__value { color: var(--color-vencido); }
+
+.despesa-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.despesa-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow var(--transition-fast);
+}
+
+.despesa-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.despesa-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+}
+
+.despesa-card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.despesa-card__nome {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: var(--space-1);
+}
+
+.despesa-card__meta {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.despesa-card__valor {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.despesa-card__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.despesa-card__chevron {
+  color: var(--color-text-light);
+  transition: transform var(--transition-fast);
+}
+
+.despesa-card.is-expanded .despesa-card__chevron {
+  transform: rotate(180deg);
+}
+
+.despesa-card__body {
+  display: none;
+  padding: 0 var(--space-5) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+.despesa-card.is-expanded .despesa-card__body {
+  display: block;
+  padding-top: var(--space-4);
+}
+
+.despesa-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3) var(--space-6);
+  font-size: 0.8125rem;
+  margin-bottom: var(--space-4);
+}
+
+.despesa-detail-grid dt {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.despesa-detail-grid dd {
+  color: var(--color-text);
+}
+
+.despesa-historico {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+
+.despesa-historico h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.despesa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.dashboard-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.operacional-quick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.operacional-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.operacional-item__valor {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-adny);
+}
+
+.relatorio-table-wrap {
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.relatorio-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.relatorio-table th,
+.relatorio-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.relatorio-table th {
+  background: var(--color-surface-2);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.relatorio-table td.num {
+  font-family: var(--font-mono);
+  text-align: right;
+}

@@ -1,0 +1,114 @@
+/**
+ * ADNY Finance — responsive.css
+ * Mobile first adjustments — iPhone ~390px.
+ */
+@media (max-width: 768px) {
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-main {
+    margin-left: 0;
+    margin-bottom: var(--bottom-nav-height);
+    padding: var(--space-4);
+  }
+
+  .app-header {
+    padding: 0 var(--space-4);
+  }
+
+  .app-header__brand {
+    font-size: 1.0625rem;
+  }
+
+  .app-header__meta span:not(.app-header__mes) {
+    display: none;
+  }
+
+  .app-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-height);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    z-index: 100;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 var(--space-2);
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+    padding: var(--space-2);
+    min-width: 56px;
+  }
+
+  .bottom-nav-item.is-active {
+    color: var(--color-accent);
+  }
+
+  .bottom-nav-item--casa.is-active { color: var(--color-casa); }
+  .bottom-nav-item--adny.is-active { color: var(--color-adny); }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .summary-card__value {
+    font-size: 1.25rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mes-nav {
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .despesa-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    max-height: 85vh;
+  }
+
+  .toast-container {
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: calc(var(--bottom-nav-height) + var(--space-4));
+  }
+}
+
+@media (max-width: 390px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .despesa-card__header {
+    flex-wrap: wrap;
+  }
+
+  .despesa-card__valor,
+  .despesa-card__badges {
+    width: 100%;
+    text-align: left;
+    align-items: flex-start;
+  }
+}
