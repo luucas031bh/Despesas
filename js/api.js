@@ -23,9 +23,10 @@ const API = (function () {
    * @param {object} params query ou body
    * @returns {Promise<object>} data da resposta
    */
-  async function request(method, params, postUrl) {
+  async function request(method, params, postUrl, timeoutMs) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), CONFIG.API_TIMEOUT);
+    const ms = timeoutMs || CONFIG.API_TIMEOUT;
+    const timer = setTimeout(() => controller.abort(), ms);
 
     try {
       let url = postUrl || CONFIG.GAS_URL;
@@ -67,10 +68,10 @@ const API = (function () {
     return request('GET', params);
   }
 
-  function post(action, body) {
+  function post(action, body, timeoutMs) {
     let url = CONFIG.GAS_URL;
     url += (url.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(action);
-    return request('POST', { action, ...body }, url);
+    return request('POST', { action, ...body }, url, timeoutMs);
   }
 
   /* ——— Modelos ——— */
@@ -98,6 +99,11 @@ const API = (function () {
   const fecharMes = (mes_ref, area) => post('fecharMes', { mes_ref, area });
   const gerarLancamentos = (mes_ref) => post('gerarLancamentos', { mes_ref });
 
+  /* ——— Leitor de boletos (Gemini) ——— */
+  const lerBoleto = (dados) => post('lerBoleto', dados, CONFIG.BOLETO_API_TIMEOUT);
+  const refinarBoleto = (dados) =>
+    post('refinarBoleto', dados, CONFIG.BOLETO_API_TIMEOUT);
+
   return {
     get,
     post,
@@ -116,5 +122,7 @@ const API = (function () {
     getConfig,
     fecharMes,
     gerarLancamentos,
+    lerBoleto,
+    refinarBoleto,
   };
 })();

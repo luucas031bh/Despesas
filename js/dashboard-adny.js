@@ -16,6 +16,7 @@ const DashboardAdny = (function () {
       <h1 class="page-title page-title--adny">ADNY — Despesas</h1>
       <div class="dashboard-toolbar">
         <button type="button" class="btn btn--adny" id="btn-novo-modelo-adny">+ Novo modelo</button>
+        <button type="button" class="btn btn--ghost" id="btn-importar-boleto-adny">Importar boleto</button>
         <button type="button" class="btn btn--ghost" id="btn-gerar-mes-adny">Gerar mês</button>
         <button type="button" class="btn btn--ghost" id="btn-op-rapido">+ Gasto rápido</button>
       </div>
@@ -30,6 +31,9 @@ const DashboardAdny = (function () {
   function bindToolbar() {
     el('btn-novo-modelo-adny')?.addEventListener('click', () =>
       Modelos.abrirModal(AREA, null)
+    );
+    el('btn-importar-boleto-adny')?.addEventListener('click', () =>
+      LeitorBoleto.abrir(AREA)
     );
     el('btn-gerar-mes-adny')?.addEventListener('click', async () => {
       try {

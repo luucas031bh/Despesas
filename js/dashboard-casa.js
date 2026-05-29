@@ -17,6 +17,7 @@ const DashboardCasa = (function () {
       <h1 class="page-title page-title--casa">Casa — Despesas</h1>
       <div class="dashboard-toolbar">
         <button type="button" class="btn btn--casa" id="btn-novo-modelo-casa">+ Novo modelo</button>
+        <button type="button" class="btn btn--ghost" id="btn-importar-boleto-casa">Importar boleto</button>
         <button type="button" class="btn btn--ghost" id="btn-gerar-mes-casa">Gerar mês</button>
       </div>
       <div class="summary-grid" id="summary-casa"></div>
@@ -30,6 +31,9 @@ const DashboardCasa = (function () {
   function bindToolbar() {
     el('btn-novo-modelo-casa')?.addEventListener('click', () =>
       Modelos.abrirModal(AREA, null)
+    );
+    el('btn-importar-boleto-casa')?.addEventListener('click', () =>
+      LeitorBoleto.abrir(AREA)
     );
     el('btn-gerar-mes-casa')?.addEventListener('click', async () => {
       try {

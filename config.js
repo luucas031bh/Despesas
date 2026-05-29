@@ -24,10 +24,19 @@ const CONFIG = {
   /** Nome da planilha no Google Drive (referência humana; ID real fica em gas/Code.gs → SPREADSHEET_ID) */
   SPREADSHEET_NAME: 'BancoDeDadosDespesas',
 
-  VERSION: '1.0.0',
+  VERSION: '1.1.0',
 
   /** Timeout HTTP para a API (ms) */
   API_TIMEOUT: 10000,
+
+  /** Timeout para leitura de boleto via Gemini (ms) */
+  BOLETO_API_TIMEOUT: 90000,
+
+  GEMINI_MODEL: 'gemini-2.0-flash',
+
+  MAX_UPLOAD_BYTES: 5 * 1024 * 1024,
+
+  UPLOAD_TIPOS: ['image/jpeg', 'image/png', 'application/pdf'],
 
   AREAS: ['casa', 'adny'],
 

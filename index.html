@@ -254,16 +254,30 @@
         </div>
       </div>
     </div>
+    <div class="modal-backdrop" id="modal-boleto-backdrop" hidden>
+      <div class="modal modal--wide" role="dialog" aria-labelledby="modal-boleto-titulo">
+        <div class="modal__header">
+          <div>
+            <h2 class="modal__title" id="modal-boleto-titulo">Importar boleto</h2>
+            <span class="despesa-card__meta" id="boleto-step-label">Etapa 1 de 4</span>
+          </div>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-boleto" aria-label="Fechar">✕</button>
+        </div>
+        <div class="modal__body" id="boleto-step-body"></div>
+        <div class="modal__footer" id="boleto-step-footer"></div>
+      </div>
+    </div>
   </div>
 
   <script>
-    document.getElementById('header-version').textContent = '1.0.0';
+    document.getElementById('header-version').textContent = '1.1.0';
   </script>
   <script src="config.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/modelos.js"></script>
+  <script src="js/leitor-boleto.js"></script>
   <script src="js/lancamentos.js"></script>
   <script src="js/dashboard-casa.js"></script>
   <script src="js/dashboard-adny.js"></script>

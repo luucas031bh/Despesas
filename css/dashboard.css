@@ -218,3 +218,39 @@
   font-family: var(--font-mono);
   text-align: right;
 }
+
+.boleto-preview {
+  margin-top: var(--space-3);
+  text-align: center;
+}
+
+.boleto-preview__img {
+  max-height: 200px;
+  margin: 0 auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.boleto-preview__pdf {
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.boleto-area-btns {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.boleto-area-btn.is-selected {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+.boleto-area-btn[data-area="casa"].is-selected {
+  box-shadow: 0 0 0 2px var(--color-casa);
+}
+
+.boleto-area-btn[data-area="adny"].is-selected {
+  box-shadow: 0 0 0 2px var(--color-adny);
+}

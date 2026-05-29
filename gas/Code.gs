@@ -302,6 +302,10 @@ function rotear_(action, params, body) {
       return respostaOk_(handlerFecharMes_(body.mes_ref, body.area));
     case 'gerarLancamentos':
       return respostaOk_(gerarLancamentosDoMes_(body.mes_ref));
+    case 'lerBoleto':
+      return respostaOk_(handlerLerBoleto_(body));
+    case 'refinarBoleto':
+      return respostaOk_(handlerRefinarBoleto_(body));
     default:
       return respostaErro_('Ação inválida: ' + action, 'ACAO_INVALIDA');
   }
@@ -670,4 +674,227 @@ function setupBancoDeDados() {
   Logger.log('Planilha: ' + active.getName());
   inicializarBanco_();
   Logger.log('Banco inicializado — abas criadas em BancoDeDadosDespesas');
+}
+
+// ——— 11. LEITOR DE BOLETOS (GEMINI) ———
+
+var GEMINI_MODEL = 'gemini-2.0-flash';
+
+var CATEGORIAS_CASA_ = [
+  'Luz', 'Água', 'Gás', 'Internet', 'Prestação Casa', 'Condomínio',
+  'IPTU', 'Seguro', 'Telefone', 'Streaming', 'Mercado', 'Outros'
+];
+
+var CATEGORIAS_ADNY_ = [
+  'Aluguel', 'Água', 'Luz', 'Internet', 'Pronamp', 'Contador',
+  'Costureira', 'Bordado', 'Corte', 'Manutenção', 'Tinta', 'Materiais',
+  'Pequenas Compras', 'Embalagens', 'Gasolina', 'Alimentação', 'Café', 'Marmita', 'Lanche', 'Outros'
+];
+
+/**
+ * Execute uma vez no editor GAS: cole sua chave do Google AI Studio e rode esta função.
+ * Obtenha em: https://aistudio.google.com/apikey
+ */
+function configurarGeminiApiKey() {
+  var key = 'COLE_SUA_CHAVE_GEMINI_AQUI';
+  if (!key || key === 'COLE_SUA_CHAVE_GEMINI_AQUI') {
+    throw new Error('Edite configurarGeminiApiKey() e cole sua chave antes de executar.');
+  }
+  PropertiesService.getScriptProperties().setProperty('GEMINI_API_KEY', key);
+  Logger.log('GEMINI_API_KEY configurada com sucesso.');
+}
+
+function getGeminiApiKey_() {
+  var key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) {
+    throw new Error('Configure GEMINI_API_KEY: execute configurarGeminiApiKey() no Apps Script.');
+  }
+  return key;
+}
+
+function categoriasPorArea_(area) {
+  return area === 'adny' ? CATEGORIAS_ADNY_ : CATEGORIAS_CASA_;
+}
+
+function parseGeminiJson_(text) {
+  if (!text) throw new Error('Resposta vazia do Gemini.');
+  var limpo = String(text).trim();
+  limpo = limpo.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+  var start = limpo.indexOf('{');
+  var end = limpo.lastIndexOf('}');
+  if (start < 0 || end < 0) throw new Error('Gemini não retornou JSON válido.');
+  return JSON.parse(limpo.substring(start, end + 1));
+}
+
+function callGeminiVision_(base64, mimeType, promptText) {
+  var apiKey = getGeminiApiKey_();
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+    GEMINI_MODEL + ':generateContent?key=' + apiKey;
+
+  var payload = {
+    contents: [{
+      parts: [
+        { text: promptText },
+        { inline_data: { mime_type: mimeType, data: base64 } }
+      ]
+    }],
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: 'application/json'
+    }
+  };
+
+  var res = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  var code = res.getResponseCode();
+  var body = JSON.parse(res.getContentText());
+
+  if (code !== 200) {
+    var msg = (body.error && body.error.message) ? body.error.message : res.getContentText();
+    if (msg.indexOf('quota') >= 0 || msg.indexOf('Quota') >= 0) {
+      throw new Error('Cota gratuita do Gemini excedida. Tente novamente mais tarde.');
+    }
+    throw new Error('Erro Gemini (' + code + '): ' + msg);
+  }
+
+  var parts = body.candidates && body.candidates[0] &&
+    body.candidates[0].content && body.candidates[0].content.parts;
+  if (!parts || !parts.length) throw new Error('Gemini não retornou conteúdo.');
+  return parts.map(function (p) { return p.text || ''; }).join('');
+}
+
+function buildPromptLerBoleto_(area) {
+  var cats = categoriasPorArea_(area).join(', ');
+  var areaLabel = area === 'adny' ? 'ADNY (empresa)' : 'Casa (pessoal)';
+
+  return 'Você analisa boletos e faturas brasileiras (JPEG, PNG ou PDF).\n' +
+    'Área informada pelo usuário: ' + areaLabel + '.\n' +
+    'Categorias válidas para esta área: ' + cats + '.\n\n' +
+    'Extraia os dados e retorne SOMENTE JSON neste formato:\n' +
+    '{\n' +
+    '  "campos": {\n' +
+    '    "nome": "nome legível da despesa",\n' +
+    '    "categoria": "uma das categorias válidas",\n' +
+    '    "tipo": "fixa_recorrente|fixa_parcelada|recorrente_variavel",\n' +
+    '    "valor_base": 0.00,\n' +
+    '    "dia_vencimento": 10,\n' +
+    '    "data_inicio": "YYYY-MM",\n' +
+    '    "data_fim": "",\n' +
+    '    "total_parcelas": 0,\n' +
+    '    "parcela_atual": 1,\n' +
+    '    "empresa": "fornecedor/emissor",\n' +
+    '    "recebedor": "beneficiário se diferente",\n' +
+    '    "telefone": "SAC/telefone",\n' +
+    '    "chave_pix": "se houver",\n' +
+    '    "link_boleto": "URL se houver",\n' +
+    '    "observacoes": "linha digitável, código de barras e notas"\n' +
+    '  },\n' +
+    '  "duvidas": [\n' +
+    '    {\n' +
+    '      "id": "tipo",\n' +
+    '      "pergunta": "texto da pergunta",\n' +
+    '      "opcoes": [{ "valor": "fixa_recorrente", "label": "Fixa (mesmo valor)" }]\n' +
+    '    }\n' +
+    '  ],\n' +
+    '  "confianca": { "valor": 0.9, "empresa": 0.9 }\n' +
+    '}\n\n' +
+    'Regras:\n' +
+    '- data_inicio = mês do vencimento (YYYY-MM)\n' +
+    '- dia_vencimento = dia do mês (1-31)\n' +
+    '- Contas de luz/água/internet: prefira recorrente_variavel\n' +
+    '- Linha digitável e código de barras vão em observacoes\n' +
+    '- Se incerto sobre tipo, valor ou categoria: inclua em duvidas (máx 3)\n' +
+    '- Se confiante, duvidas = []\n' +
+    '- Use null apenas se campo realmente não existir no documento\n' +
+    '- valor_base em número decimal (ex: 342.50)\n';
+}
+
+function normalizarCamposModelo_(campos, area) {
+  var c = campos || {};
+  var cats = categoriasPorArea_(area);
+  var cat = c.categoria || 'Outros';
+  if (cats.indexOf(cat) < 0) {
+    if (area === 'adny') cat = 'Outros';
+    else cat = cats.indexOf('Outros') >= 0 ? 'Outros' : cats[0];
+  }
+
+  var tipos = ['fixa_recorrente', 'fixa_parcelada', 'recorrente_variavel'];
+  var tipo = c.tipo || 'recorrente_variavel';
+  if (tipos.indexOf(tipo) < 0) tipo = 'recorrente_variavel';
+
+  var dia = Number(c.dia_vencimento) || 10;
+  if (dia < 1) dia = 1;
+  if (dia > 31) dia = 31;
+
+  var dataInicio = c.data_inicio || mesAtualRef_();
+  if (String(dataInicio).length > 7) dataInicio = String(dataInicio).substring(0, 7);
+
+  return {
+    nome: c.nome || 'Despesa importada',
+    categoria: cat,
+    tipo: tipo,
+    valor_base: Number(c.valor_base) || 0,
+    dia_vencimento: dia,
+    data_inicio: dataInicio,
+    data_fim: c.data_fim || '',
+    total_parcelas: Number(c.total_parcelas) || 0,
+    parcela_atual: Number(c.parcela_atual) || 1,
+    empresa: c.empresa || '',
+    recebedor: c.recebedor || '',
+    telefone: c.telefone || '',
+    chave_pix: c.chave_pix || '',
+    link_boleto: c.link_boleto || '',
+    observacoes: c.observacoes || ''
+  };
+}
+
+function handlerLerBoleto_(d) {
+  if (!d || !d.base64 || !d.mimeType) {
+    throw new Error('Envie mimeType e base64 do arquivo.');
+  }
+  var area = d.area === 'adny' ? 'adny' : 'casa';
+  var allowed = ['image/jpeg', 'image/png', 'application/pdf'];
+  if (allowed.indexOf(d.mimeType) < 0) {
+    throw new Error('Formato não suportado. Use JPEG, PNG ou PDF.');
+  }
+
+  var raw = callGeminiVision_(d.base64, d.mimeType, buildPromptLerBoleto_(area));
+  var parsed = parseGeminiJson_(raw);
+  var campos = normalizarCamposModelo_(parsed.campos || {}, area);
+  var duvidas = Array.isArray(parsed.duvidas) ? parsed.duvidas : [];
+
+  return {
+    area: area,
+    campos: campos,
+    duvidas: duvidas,
+    confianca: parsed.confianca || {}
+  };
+}
+
+function handlerRefinarBoleto_(d) {
+  var area = d.area === 'adny' ? 'adny' : 'casa';
+  var campos = d.campos || {};
+  var respostas = d.respostas || {};
+
+  Object.keys(respostas).forEach(function (k) {
+    if (respostas[k] !== undefined && respostas[k] !== null && respostas[k] !== '') {
+      campos[k] = respostas[k];
+    }
+  });
+
+  if (respostas.observacoes_extra) {
+    campos.observacoes = (campos.observacoes || '') +
+      (campos.observacoes ? '\n' : '') + respostas.observacoes_extra;
+  }
+
+  return {
+    area: area,
+    campos: normalizarCamposModelo_(campos, area),
+    duvidas: []
+  };
 }

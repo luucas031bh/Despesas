@@ -116,6 +116,7 @@ const App = (function () {
 
     await carregarModais();
     Modelos.init();
+    LeitorBoleto.init();
     Lancamentos.init();
     Operacional.init();
     DashboardCasa.init();

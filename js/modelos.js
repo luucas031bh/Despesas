@@ -8,7 +8,8 @@ const Modelos = (function () {
 
   function abrirModal(area, modelo) {
     areaAtual = area;
-    editandoId = modelo ? modelo.id : null;
+    editandoId = modelo && modelo.id ? modelo.id : null;
+    const viaBoleto = modelo && modelo._viaBoleto;
     const backdrop = document.getElementById('modal-modelo-backdrop');
     const form = document.getElementById('form-modelo');
     if (!backdrop || !form) return;
@@ -17,18 +18,42 @@ const Modelos = (function () {
     document.getElementById('modelo-area').value = area;
 
     const titulo = document.getElementById('modal-modelo-titulo');
-    titulo.textContent = editandoId ? 'Editar modelo' : 'Novo modelo de despesa';
+    if (editandoId) {
+      titulo.textContent = 'Editar modelo';
+    } else if (viaBoleto) {
+      titulo.textContent = 'Novo modelo (via boleto)';
+    } else {
+      titulo.textContent = 'Novo modelo de despesa';
+    }
 
     preencherCategorias(area);
 
     if (modelo) {
-      Object.keys(modelo).forEach((k) => {
-        const el = form.elements.namedItem(k);
-        if (el) el.value = modelo[k] ?? '';
-      });
-      if (form.elements.valor_base) {
-        form.elements.valor_base.value = modelo.valor_base;
+      const dados = { ...modelo };
+      delete dados._viaBoleto;
+      delete dados.id;
+
+      if (dados.categoria) {
+        const sel = document.getElementById('modelo-categoria');
+        if (sel && !Array.from(sel.options).some((o) => o.value === dados.categoria)) {
+          const opt = document.createElement('option');
+          opt.value = dados.categoria;
+          opt.textContent = dados.categoria;
+          sel.appendChild(opt);
+        }
       }
+
+      Object.keys(dados).forEach((k) => {
+        const elField = form.elements.namedItem(k);
+        if (elField && dados[k] != null && dados[k] !== '') {
+          elField.value = dados[k];
+        }
+      });
+      if (form.elements.valor_base && dados.valor_base != null) {
+        form.elements.valor_base.value = dados.valor_base;
+      }
+      if (!form.elements.total_parcelas.value) form.elements.total_parcelas.value = 0;
+      if (!form.elements.parcela_atual.value) form.elements.parcela_atual.value = 1;
     } else {
       form.elements.data_inicio.value = AppState.mesRef;
       form.elements.dia_vencimento.value = 10;
@@ -83,7 +108,7 @@ const Modelos = (function () {
         Utils.showToast('Modelo atualizado.');
       } else {
         await API.criarModelo({ id: Utils.gerarId('mod'), ...dados });
-        Utils.showToast('Modelo criado.');
+        Utils.showToast('Modelo criado. Clique em "Gerar mês" para criar o lançamento.');
       }
       fecharModal();
       document.dispatchEvent(
