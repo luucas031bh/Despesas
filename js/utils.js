@@ -187,6 +187,39 @@ const Utils = (function () {
     return flatCategoriasAdny();
   }
 
+  const MIME_POR_EXT = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    heic: 'image/heic',
+    heif: 'image/heif',
+    pdf: 'application/pdf',
+  };
+
+  /**
+   * normalizarMimeArquivo — iOS/Android muitas vezes enviam type vazio ou octet-stream
+   */
+  function normalizarMimeArquivo(file) {
+    if (!file) return '';
+    let mime = (file.type || '').toLowerCase().trim();
+    if (mime === 'image/jpg') mime = 'image/jpeg';
+    const ext = (file.name || '').split('.').pop().toLowerCase();
+    if ((!mime || mime === 'application/octet-stream') && ext && MIME_POR_EXT[ext]) {
+      mime = MIME_POR_EXT[ext];
+    }
+    return mime;
+  }
+
+  function arquivoUploadPermitido(mime) {
+    return CONFIG.UPLOAD_TIPOS.includes(mime);
+  }
+
+  function extensaoUploadPermitida(nome) {
+    const ext = (nome || '').split('.').pop().toLowerCase();
+    return CONFIG.UPLOAD_EXTENSOES.includes(ext);
+  }
+
   return {
     gerarId,
     mesAtualRef,
@@ -203,5 +236,8 @@ const Utils = (function () {
     setLoading,
     flatCategoriasAdny,
     categoriasPorArea,
+    normalizarMimeArquivo,
+    arquivoUploadPermitido,
+    extensaoUploadPermitida,
   };
 })();

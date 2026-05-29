@@ -43,7 +43,15 @@ const CONFIG = {
 
   MAX_UPLOAD_BYTES: 5 * 1024 * 1024,
 
-  UPLOAD_TIPOS: ['image/jpeg', 'image/png', 'application/pdf'],
+  UPLOAD_TIPOS: [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+    'application/pdf',
+  ],
+  UPLOAD_EXTENSOES: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'pdf'],
 
   AREAS: ['casa', 'adny'],
 

@@ -6,8 +6,10 @@ const LeitorBoleto = (function () {
   let step = 1;
   let areaSelecionada = null;
   let arquivo = null;
+  let arquivoMime = null;
   let previewUrl = null;
   let resultado = null;
+  let fileInputsProntos = false;
   const respostas = {};
 
   function el(id) {
@@ -18,6 +20,7 @@ const LeitorBoleto = (function () {
     step = 1;
     areaSelecionada = areaPref || null;
     arquivo = null;
+    arquivoMime = null;
     resultado = null;
     Object.keys(respostas).forEach((k) => delete respostas[k]);
     if (previewUrl) {
@@ -25,18 +28,110 @@ const LeitorBoleto = (function () {
       previewUrl = null;
     }
 
+    garantirInputsArquivo();
+
     const backdrop = el('modal-boleto-backdrop');
     if (!backdrop) return;
     backdrop.hidden = false;
+    document.body.classList.add('modal-boleto-aberto');
     renderStep();
   }
 
   function fechar() {
     el('modal-boleto-backdrop').hidden = true;
+    document.body.classList.remove('modal-boleto-aberto');
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
       previewUrl = null;
     }
+  }
+
+  function garantirInputsArquivo() {
+    if (fileInputsProntos) return;
+
+    const wrap = document.createElement('div');
+    wrap.id = 'boleto-file-inputs';
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.className = 'boleto-file-inputs-sr';
+    wrap.innerHTML = `
+      <input type="file" id="boleto-inp-galeria" tabindex="-1"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif" />
+      <input type="file" id="boleto-inp-camera" tabindex="-1"
+        accept="image/*" capture="environment" />
+      <input type="file" id="boleto-inp-pdf" tabindex="-1"
+        accept="application/pdf,.pdf" />
+    `;
+    document.body.appendChild(wrap);
+
+    el('boleto-inp-galeria').addEventListener('change', (e) => tratarArquivo(e.target));
+    el('boleto-inp-camera').addEventListener('change', (e) => tratarArquivo(e.target));
+    el('boleto-inp-pdf').addEventListener('change', (e) => tratarArquivo(e.target));
+
+    fileInputsProntos = true;
+  }
+
+  function limparInputFile(input) {
+    if (input) input.value = '';
+  }
+
+  function tratarArquivo(input) {
+    const file = input?.files?.[0];
+    limparInputFile(input);
+    if (!file) return;
+
+    const mimeFinal = Utils.normalizarMimeArquivo(file);
+
+    if (!Utils.arquivoUploadPermitido(mimeFinal)) {
+      Utils.showToast('Use foto (JPG, PNG) ou PDF.', 'error');
+      return;
+    }
+
+    if (file.size > CONFIG.MAX_UPLOAD_BYTES) {
+      Utils.showToast(
+        `Arquivo muito grande (máx. ${Math.round(CONFIG.MAX_UPLOAD_BYTES / 1024 / 1024)} MB).`,
+        'error'
+      );
+      return;
+    }
+
+    arquivo = file;
+    arquivoMime = mimeFinal;
+    mostrarPreview(file, mimeFinal);
+
+    const btn = el('btn-boleto-next');
+    if (btn) btn.disabled = false;
+
+    if (step !== 1) {
+      step = 1;
+      renderStep();
+    }
+  }
+
+  function mostrarPreview(file, mime) {
+    const preview = el('boleto-preview');
+    if (!preview) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+
+    if (mime.startsWith('image/')) {
+      previewUrl = URL.createObjectURL(file);
+      preview.innerHTML = `<img src="${previewUrl}" alt="Preview do boleto" class="boleto-preview__img" />`;
+    } else {
+      preview.innerHTML = `<p class="boleto-preview__pdf">📄 ${file.name}</p>`;
+    }
+  }
+
+  function abrirSeletor(tipo) {
+    garantirInputsArquivo();
+    const map = {
+      galeria: 'boleto-inp-galeria',
+      camera: 'boleto-inp-camera',
+      pdf: 'boleto-inp-pdf',
+    };
+    const input = el(map[tipo]);
+    if (!input) return;
+    limparInputFile(input);
+    input.click();
   }
 
   function renderStep() {
@@ -54,57 +149,51 @@ const LeitorBoleto = (function () {
 
   function renderUpload(body, footer) {
     body.innerHTML = `
-      <p class="despesa-card__meta" style="margin-bottom:1rem">
-        Envie foto ou PDF do boleto (máx. ${Math.round(CONFIG.MAX_UPLOAD_BYTES / 1024 / 1024)} MB).
+      <p class="despesa-card__meta boleto-upload-hint">
+        Escolha como enviar o boleto (máx. ${Math.round(CONFIG.MAX_UPLOAD_BYTES / 1024 / 1024)} MB).
       </p>
-      <div class="form-group">
-        <label for="boleto-file">Arquivo</label>
-        <input type="file" id="boleto-file" class="form-control"
-          accept="image/jpeg,image/png,application/pdf" />
+      <div class="boleto-upload-actions" role="group" aria-label="Origem do arquivo">
+        <button type="button" class="btn btn--primary boleto-upload-btn" data-fonte="galeria">
+          🖼️ Galeria / fotos salvas
+        </button>
+        <button type="button" class="btn btn--ghost boleto-upload-btn" data-fonte="camera">
+          📸 Tirar foto agora
+        </button>
+        <button type="button" class="btn btn--ghost boleto-upload-btn" data-fonte="pdf">
+          📄 Arquivo PDF
+        </button>
       </div>
       <div id="boleto-preview" class="boleto-preview"></div>
+      ${
+        arquivo
+          ? `<p class="despesa-card__meta boleto-arquivo-nome">Selecionado: <strong>${arquivo.name}</strong></p>`
+          : ''
+      }
     `;
     footer.innerHTML = `
       <button type="button" class="btn btn--ghost" id="btn-boleto-cancel">Cancelar</button>
-      <button type="button" class="btn btn--primary" id="btn-boleto-next" disabled>Próximo →</button>
+      <button type="button" class="btn btn--primary" id="btn-boleto-next" ${arquivo ? '' : 'disabled'}>
+        Próximo →
+      </button>
     `;
+
+    body.querySelectorAll('.boleto-upload-btn').forEach((btn) => {
+      btn.addEventListener('click', () => abrirSeletor(btn.dataset.fonte));
+    });
 
     el('btn-boleto-cancel').onclick = fechar;
     el('btn-boleto-next').onclick = () => {
+      if (!arquivo) {
+        Utils.showToast('Selecione um arquivo antes de continuar.', 'error');
+        return;
+      }
       step = 2;
       renderStep();
     };
 
-    el('boleto-file').onchange = (e) => {
-      const file = e.target.files[0];
-      const preview = el('boleto-preview');
-      const btn = el('btn-boleto-next');
-      if (!file) {
-        arquivo = null;
-        btn.disabled = true;
-        preview.innerHTML = '';
-        return;
-      }
-      if (!CONFIG.UPLOAD_TIPOS.includes(file.type)) {
-        Utils.showToast('Use JPEG, PNG ou PDF.', 'error');
-        e.target.value = '';
-        return;
-      }
-      if (file.size > CONFIG.MAX_UPLOAD_BYTES) {
-        Utils.showToast('Arquivo muito grande.', 'error');
-        e.target.value = '';
-        return;
-      }
-      arquivo = file;
-      btn.disabled = false;
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      if (file.type.startsWith('image/')) {
-        previewUrl = URL.createObjectURL(file);
-        preview.innerHTML = `<img src="${previewUrl}" alt="Preview" class="boleto-preview__img" />`;
-      } else {
-        preview.innerHTML = `<p class="boleto-preview__pdf">📄 ${file.name}</p>`;
-      }
-    };
+    if (arquivo && arquivoMime) {
+      mostrarPreview(arquivo, arquivoMime);
+    }
   }
 
   function renderArea(body, footer) {
@@ -158,11 +247,16 @@ const LeitorBoleto = (function () {
 
   async function analisarBoleto() {
     if (!arquivo || !areaSelecionada) return;
+    const mime = arquivoMime || Utils.normalizarMimeArquivo(arquivo);
+    if (!Utils.arquivoUploadPermitido(mime)) {
+      Utils.showToast('Formato inválido. Use JPG, PNG ou PDF.', 'error');
+      return;
+    }
     try {
       Utils.setLoading(true);
       const base64 = await fileToBase64(arquivo);
       resultado = await API.lerBoleto({
-        mimeType: arquivo.type,
+        mimeType: mime,
         base64,
         area: areaSelecionada,
       });
@@ -289,6 +383,7 @@ const LeitorBoleto = (function () {
   }
 
   function init() {
+    garantirInputsArquivo();
     el('btn-fechar-modal-boleto')?.addEventListener('click', fechar);
     el('btn-cancel-boleto')?.addEventListener('click', fechar);
     el('modal-boleto-backdrop')?.addEventListener('click', (e) => {

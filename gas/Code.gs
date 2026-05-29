@@ -925,7 +925,9 @@ function handlerLerBoleto_(d) {
     throw new Error('Envie mimeType e base64 do arquivo.');
   }
   var area = d.area === 'adny' ? 'adny' : 'casa';
-  var allowed = ['image/jpeg', 'image/png', 'application/pdf'];
+  var allowed = [
+    'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'
+  ];
   if (allowed.indexOf(d.mimeType) < 0) {
     throw new Error('Formato não suportado. Use JPEG, PNG ou PDF.');
   }
