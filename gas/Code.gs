@@ -10,7 +10,13 @@
 // ——— 1. CONFIGURAÇÕES GLOBAIS ———
 
 /** ID da planilha BancoDeDadosDespesas (trecho entre /d/ e /edit na URL) */
-var SPREADSHEET_ID = 'COLE_O_ID_DA_PLANILHA_AQUI';
+var SPREADSHEET_ID = '17SFH1FTixDgwrCwchH5uTs64WuFbXPSGzSMlvH4M9TU';
+
+/** URL do Web App (copiar também para config.js → GAS_URL) */
+var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec';
+
+/** Código de implantação (Gerenciar implantações) */
+var DEPLOYMENT_ID = 'AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw';
 
 var SHEETS = {
   MODELOS: 'MODELOS',
