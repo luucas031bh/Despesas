@@ -157,6 +157,11 @@ const DashboardCasa = (function () {
     return modelosCache.find((m) => m.id === id);
   }
 
+  function modelosSemLancamentoNoMes(modelos, lancamentos) {
+    const ids = new Set(lancamentos.map((l) => l.modelo_id));
+    return modelos.filter((m) => m.id && !ids.has(m.id));
+  }
+
   async function historicoModelo(modeloId) {
     if (!modeloId) return [];
     try {
@@ -179,13 +184,26 @@ const DashboardCasa = (function () {
   function renderLista(lancamentos) {
     const lista = filtrarLista(lancamentos);
     const container = el('lista-casa');
+    const pendentes = modelosSemLancamentoNoMes(modelosCache, lancamentos);
 
     if (!lista.length) {
-      container.innerHTML = `
+      const nomes = pendentes.map((m) => m.nome).join(', ');
+      container.innerHTML = pendentes.length
+        ? `
+        <div class="empty-state empty-state--pendentes">
+          <strong>Cadastro na planilha, mas não neste mês</strong>
+          <p><strong>${pendentes.length}</strong> modelo(s): ${nomes}</p>
+          <p>Toque em <strong>Gerar mês</strong> para exibir na lista (mês: ${Utils.formatarMesLabel(AppState.mesRef)}).</p>
+          <button type="button" class="btn btn--casa" id="btn-gerar-mes-inline-casa">Gerar mês agora</button>
+        </div>`
+        : `
         <div class="empty-state">
           <strong>Nenhuma despesa neste mês</strong>
-          <p>Cadastre com <strong>+ Novo modelo</strong> ou toque em <strong>Gerar mês</strong> se já cadastrou na planilha.</p>
+          <p>Cadastre com <strong>+ Novo modelo</strong> ou toque em <strong>Gerar mês</strong>.</p>
         </div>`;
+      el('btn-gerar-mes-inline-casa')?.addEventListener('click', () =>
+        el('btn-gerar-mes-casa')?.click()
+      );
       return;
     }
 
@@ -283,11 +301,19 @@ const DashboardCasa = (function () {
 
     try {
       Utils.setLoading(true);
-      const [lancamentos, modelos] = await Promise.all([
+      const [lancamentosRaw, modelos] = await Promise.all([
         API.getLancamentos(AppState.mesRef, AREA),
         API.getModelos(AREA),
       ]);
       modelosCache = modelos;
+      let lancamentos = lancamentosRaw;
+      const faltando = modelosSemLancamentoNoMes(modelos, lancamentos);
+      if (faltando.length > 0) {
+        const g = await API.gerarLancamentos(AppState.mesRef);
+        if ((g.gerados || 0) > 0) {
+          lancamentos = await API.getLancamentos(AppState.mesRef, AREA);
+        }
+      }
       AppState.lancamentosCasa = Utils.aplicarStatusLista(lancamentos);
       renderResumo(AppState.lancamentosCasa);
       renderLista(AppState.lancamentosCasa);

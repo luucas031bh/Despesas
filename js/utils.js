@@ -109,6 +109,27 @@ const Utils = (function () {
     return shiftMes(mesRef, 1);
   }
 
+  /** Diferença em meses entre dois YYYY-MM (ate - de) */
+  function diffMeses(de, ate) {
+    const [y1, m1] = String(de).split('-').map(Number);
+    const [y2, m2] = String(ate).split('-').map(Number);
+    return (y2 - y1) * 12 + (m2 - m1);
+  }
+
+  /**
+   * mesRefUtil — evita abrir o app em ano errado (ex.: 2026 na planilha com hoje em 2024)
+   */
+  function mesRefUtil(mesConfig) {
+    const atual = mesAtualRef();
+    if (!mesConfig || !/^\d{4}-\d{1,2}$/.test(String(mesConfig))) return atual;
+    const norm = String(mesConfig).length > 7 ? String(mesConfig).slice(0, 7) : mesConfig;
+    const parts = norm.split('-');
+    const canon = `${parts[0]}-${String(Number(parts[1])).padStart(2, '0')}`;
+    const diff = diffMeses(atual, canon);
+    if (diff > 3 || diff < -36) return atual;
+    return canon;
+  }
+
   /**
    * calcularDataVencimento — último dia do mês se dia > dias no mês
    * @param {string} mesRef YYYY-MM
@@ -229,6 +250,8 @@ const Utils = (function () {
     formatarMesLabel,
     mesAnterior,
     mesProximo,
+    diffMeses,
+    mesRefUtil,
     calcularDataVencimento,
     calcularStatus,
     aplicarStatusLista,

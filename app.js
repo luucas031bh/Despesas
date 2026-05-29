@@ -111,7 +111,9 @@ const App = (function () {
     try {
       await API.ping();
       AppState.config = await API.getConfig();
-      if (AppState.config.mes_ativo) AppState.mesRef = AppState.config.mes_ativo;
+      if (AppState.config.mes_ativo) {
+        AppState.mesRef = Utils.mesRefUtil(AppState.config.mes_ativo);
+      }
     } catch (err) {
       Utils.showToast(
         err?.message || 'API indisponível — cole o Code.gs completo no Apps Script e faça Nova versão.',

@@ -288,3 +288,12 @@
 .boleto-area-btn[data-area="adny"].is-selected {
   box-shadow: 0 0 0 2px var(--color-adny);
 }
+
+.empty-state--pendentes {
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.empty-state--pendentes .btn {
+  margin-top: var(--space-4);
+}

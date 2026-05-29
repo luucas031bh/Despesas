@@ -136,11 +136,29 @@ const DashboardAdny = (function () {
     return lancamentos.filter((l) => Utils.calcularStatus(l) === filtroStatus);
   }
 
+  function modelosSemLancamentoNoMes(modelos, lancamentos) {
+    const ids = new Set(lancamentos.map((l) => l.modelo_id));
+    return modelos.filter((m) => m.id && !ids.has(m.id));
+  }
+
   function renderLista(lancamentos) {
     const lista = filtrarLista(lancamentos);
     const container = el('lista-adny');
+    const pendentes = modelosSemLancamentoNoMes(modelosCache, lancamentos);
     if (!lista.length) {
-      container.innerHTML = `<div class="empty-state"><strong>Nenhuma despesa neste mês</strong><p>Cadastre com <strong>+ Novo modelo</strong> ou toque em <strong>Gerar mês</strong>.</p></div>`;
+      const nomes = pendentes.map((m) => m.nome).join(', ');
+      container.innerHTML = pendentes.length
+        ? `
+        <div class="empty-state empty-state--pendentes">
+          <strong>Cadastro na planilha, mas não neste mês</strong>
+          <p><strong>${pendentes.length}</strong> modelo(s): ${nomes}</p>
+          <p>Toque em <strong>Gerar mês</strong> (mês: ${Utils.formatarMesLabel(AppState.mesRef)}).</p>
+          <button type="button" class="btn btn--adny" id="btn-gerar-mes-inline-adny">Gerar mês agora</button>
+        </div>`
+        : `<div class="empty-state"><strong>Nenhuma despesa neste mês</strong><p>Cadastre com <strong>+ Novo modelo</strong> ou toque em <strong>Gerar mês</strong>.</p></div>`;
+      el('btn-gerar-mes-inline-adny')?.addEventListener('click', () =>
+        el('btn-gerar-mes-adny')?.click()
+      );
       return;
     }
     container.innerHTML = lista
@@ -207,11 +225,19 @@ const DashboardAdny = (function () {
     document.getElementById('header-area-label').textContent = 'ADNY';
     try {
       Utils.setLoading(true);
-      const [lancamentos, modelos] = await Promise.all([
+      const [lancamentosRaw, modelos] = await Promise.all([
         API.getLancamentos(AppState.mesRef, AREA),
         API.getModelos(AREA),
       ]);
       modelosCache = modelos;
+      let lancamentos = lancamentosRaw;
+      const faltando = modelosSemLancamentoNoMes(modelos, lancamentos);
+      if (faltando.length > 0) {
+        const g = await API.gerarLancamentos(AppState.mesRef);
+        if ((g.gerados || 0) > 0) {
+          lancamentos = await API.getLancamentos(AppState.mesRef, AREA);
+        }
+      }
       AppState.lancamentosAdny = Utils.aplicarStatusLista(lancamentos);
       renderResumo(AppState.lancamentosAdny);
       renderLista(AppState.lancamentosAdny);
