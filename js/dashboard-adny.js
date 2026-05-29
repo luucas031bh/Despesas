@@ -146,6 +146,30 @@ const DashboardAdny = (function () {
     return modelos.filter((m) => m.id && !ids.has(m.id));
   }
 
+  function botaoStatusPagamento(l, st) {
+    if (st === 'pago') {
+      return `<button type="button" class="btn btn--ghost btn--sm despesa-btn-status despesa-btn-status--pago" data-desfazer-paga="${l.id}" title="Marcar como em aberto">✓ Paga</button>`;
+    }
+    return `<button type="button" class="btn btn--adny btn--sm despesa-btn-status" data-marcar-paga="${l.id}">Marcar paga</button>`;
+  }
+
+  function bindAcoesPagamento(container, lancamentos) {
+    container.querySelectorAll('[data-marcar-paga]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const l = lancamentos.find((x) => x.id === btn.dataset.marcarPaga);
+        if (l) Lancamentos.marcarComoPaga(l);
+      });
+    });
+    container.querySelectorAll('[data-desfazer-paga]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const l = lancamentos.find((x) => x.id === btn.dataset.desfazerPaga);
+        if (l) Lancamentos.desfazerPagamento(l);
+      });
+    });
+  }
+
   function renderLista(lancamentos) {
     const lista = filtrarLista(lancamentos);
     const container = el('lista-adny');
@@ -182,6 +206,7 @@ const DashboardAdny = (function () {
               <span class="despesa-card__valor">${Utils.formatarMoeda(l.valor)}</span>
               <span class="badge badge--${st}">${CONFIG.LABELS_STATUS[st]}</span>
             </div>
+            <div class="despesa-card__header-actions">${botaoStatusPagamento(l, st)}</div>
             <span class="despesa-card__chevron">▼</span>
           </div>
           <div class="despesa-card__body" id="body-adny-${l.id}"></div>
@@ -189,8 +214,11 @@ const DashboardAdny = (function () {
       })
       .join('');
 
+    bindAcoesPagamento(container, lancamentos);
+
     container.querySelectorAll('[data-toggle-adny]').forEach((hdr) => {
-      hdr.addEventListener('click', () => {
+      hdr.addEventListener('click', (e) => {
+        if (e.target.closest('.despesa-btn-status')) return;
         const card = hdr.closest('.despesa-card');
         const id = hdr.dataset.toggleAdny;
         const open = card.classList.toggle('is-expanded');
@@ -211,12 +239,25 @@ const DashboardAdny = (function () {
         <dt>Vencimento</dt><dd>${l.data_vencimento}</dd>
       </dl>
       <div class="despesa-actions">
-        ${st !== 'pago' ? `<button type="button" class="btn btn--adny btn--sm" data-pagar-adny="${l.id}">Pagar</button>` : ''}
+        ${
+          st === 'pago'
+            ? `<button type="button" class="btn btn--ghost btn--sm" data-desfazer-paga-detalhe="${l.id}">Desfazer pagamento</button>`
+            : `<button type="button" class="btn btn--adny btn--sm" data-marcar-paga-detalhe="${l.id}">Marcar paga</button>
+               <button type="button" class="btn btn--ghost btn--sm" data-pagar-detalhe="${l.id}">Valor e método…</button>`
+        }
         ${mod ? `<button type="button" class="btn btn--ghost btn--sm" data-edit-adny="${mod.id}">Editar modelo</button>` : ''}
       </div>`;
-    body.querySelector('[data-pagar-adny]')?.addEventListener('click', (e) => {
+    body.querySelector('[data-marcar-paga-detalhe]')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      Lancamentos.abrirModalPagamento(l);
+      Lancamentos.marcarComoPaga(l);
+    });
+    body.querySelector('[data-pagar-detalhe]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Lancamentos.marcarComoPaga(l, { detalhado: true });
+    });
+    body.querySelector('[data-desfazer-paga-detalhe]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Lancamentos.desfazerPagamento(l);
     });
     body.querySelector('[data-edit-adny]')?.addEventListener('click', (e) => {
       e.stopPropagation();

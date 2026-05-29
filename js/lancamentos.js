@@ -4,9 +4,19 @@
  */
 const Lancamentos = (function () {
   let pagandoId = null;
+  let pagandoLanc = null;
+
+  function refreshDashboard(lancamento) {
+    document.dispatchEvent(
+      new CustomEvent('adny:refresh-dashboard', {
+        detail: { area: lancamento?.area },
+      })
+    );
+  }
 
   function abrirModalPagamento(lancamento) {
     pagandoId = lancamento.id;
+    pagandoLanc = lancamento;
     const backdrop = document.getElementById('modal-pagar-backdrop');
     const form = document.getElementById('form-pagar');
     if (!backdrop || !form) return;
@@ -22,6 +32,61 @@ const Lancamentos = (function () {
   function fecharModal() {
     document.getElementById('modal-pagar-backdrop').hidden = true;
     pagandoId = null;
+    pagandoLanc = null;
+  }
+
+  /**
+   * Marca despesa como paga (PIX, valor do lançamento, data de hoje).
+   * Use detalhado: true para abrir o modal com valor/método/data.
+   */
+  async function marcarComoPaga(lancamento, opcoes) {
+    if (!lancamento) return;
+    if (Utils.calcularStatus(lancamento) === 'pago') return;
+
+    if (opcoes?.detalhado) {
+      abrirModalPagamento(lancamento);
+      return;
+    }
+
+    const msg = `Marcar "${lancamento.nome}" como paga (${Utils.formatarMoeda(lancamento.valor)})?`;
+    if (!opcoes?.semConfirm && !confirm(msg)) return;
+
+    try {
+      Utils.setLoading(true);
+      await API.pagarLancamento({
+        id: lancamento.id,
+        valor: Number(lancamento.valor) || 0,
+        data_pagamento: Utils.hojeISO(),
+        metodo_pagamento: opcoes?.metodo || 'pix',
+      });
+      Utils.showToast('Despesa marcada como paga.');
+      refreshDashboard(lancamento);
+    } catch (err) {
+      Utils.showToast(err.message, 'error');
+    } finally {
+      Utils.setLoading(false);
+    }
+  }
+
+  async function desfazerPagamento(lancamento) {
+    if (!lancamento || Utils.calcularStatus(lancamento) !== 'pago') return;
+    if (!confirm(`Marcar "${lancamento.nome}" como em aberto novamente?`)) return;
+
+    try {
+      Utils.setLoading(true);
+      await API.editarLancamento({
+        id: lancamento.id,
+        status: 'aberto',
+        data_pagamento: '',
+        metodo_pagamento: '',
+      });
+      Utils.showToast('Pagamento desfeito.');
+      refreshDashboard(lancamento);
+    } catch (err) {
+      Utils.showToast(err.message, 'error');
+    } finally {
+      Utils.setLoading(false);
+    }
   }
 
   async function salvarPagamento(e) {
@@ -37,7 +102,7 @@ const Lancamentos = (function () {
       });
       Utils.showToast('Pagamento registrado.');
       fecharModal();
-      document.dispatchEvent(new CustomEvent('adny:refresh-dashboard'));
+      refreshDashboard(pagandoLanc);
     } catch (err) {
       Utils.showToast(err.message, 'error');
     } finally {
@@ -71,5 +136,12 @@ const Lancamentos = (function () {
     });
   }
 
-  return { init, abrirModalPagamento, fecharModal, arquivarModeloDoLancamento };
+  return {
+    init,
+    abrirModalPagamento,
+    fecharModal,
+    marcarComoPaga,
+    desfazerPagamento,
+    arquivarModeloDoLancamento,
+  };
 })();

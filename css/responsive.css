@@ -141,4 +141,13 @@
     text-align: left;
     align-items: flex-start;
   }
+
+  .despesa-card__header-actions {
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+
+  .despesa-card__header-actions .despesa-btn-status {
+    width: 100%;
+  }
 }

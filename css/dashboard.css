@@ -100,6 +100,22 @@
   gap: var(--space-2);
 }
 
+.despesa-card__header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.despesa-btn-status {
+  white-space: nowrap;
+  min-height: 36px;
+}
+
+.despesa-btn-status--pago {
+  color: var(--color-pago);
+  font-weight: 600;
+}
+
 .despesa-card__chevron {
   color: var(--color-text-light);
   transition: transform var(--transition-fast);

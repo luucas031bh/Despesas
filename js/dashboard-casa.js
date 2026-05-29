@@ -168,6 +168,30 @@ const DashboardCasa = (function () {
     return modelos.filter((m) => m.id && !ids.has(m.id));
   }
 
+  function botaoStatusPagamento(l, st) {
+    if (st === 'pago') {
+      return `<button type="button" class="btn btn--ghost btn--sm despesa-btn-status despesa-btn-status--pago" data-desfazer-paga="${l.id}" title="Marcar como em aberto">✓ Paga</button>`;
+    }
+    return `<button type="button" class="btn btn--casa btn--sm despesa-btn-status" data-marcar-paga="${l.id}">Marcar paga</button>`;
+  }
+
+  function bindAcoesPagamento(container, lancamentos) {
+    container.querySelectorAll('[data-marcar-paga]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const l = lancamentos.find((x) => x.id === btn.dataset.marcarPaga);
+        if (l) Lancamentos.marcarComoPaga(l);
+      });
+    });
+    container.querySelectorAll('[data-desfazer-paga]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const l = lancamentos.find((x) => x.id === btn.dataset.desfazerPaga);
+        if (l) Lancamentos.desfazerPagamento(l);
+      });
+    });
+  }
+
   async function historicoModelo(modeloId) {
     if (!modeloId) return [];
     try {
@@ -230,6 +254,7 @@ const DashboardCasa = (function () {
               <span class="despesa-card__valor">${Utils.formatarMoeda(l.valor)}</span>
               <span class="badge badge--${st}">${CONFIG.LABELS_STATUS[st]}</span>
             </div>
+            <div class="despesa-card__header-actions">${botaoStatusPagamento(l, st)}</div>
             <span class="despesa-card__chevron">▼</span>
           </div>
           <div class="despesa-card__body" id="body-${l.id}"></div>
@@ -237,8 +262,11 @@ const DashboardCasa = (function () {
       })
       .join('');
 
+    bindAcoesPagamento(container, lancamentos);
+
     container.querySelectorAll('[data-toggle]').forEach((hdr) => {
-      hdr.addEventListener('click', async () => {
+      hdr.addEventListener('click', async (e) => {
+        if (e.target.closest('.despesa-btn-status')) return;
         const card = hdr.closest('.despesa-card');
         const id = hdr.dataset.toggle;
         const expanded = card.classList.toggle('is-expanded');
@@ -264,10 +292,12 @@ const DashboardCasa = (function () {
           .join('')
       : '<div>Sem histórico anterior</div>';
 
+    const st = Utils.calcularStatus(l);
     const btnPagar =
-      Utils.calcularStatus(l) === 'pago'
-        ? ''
-        : `<button type="button" class="btn btn--casa btn--sm" data-pagar="${l.id}">Pagar</button>`;
+      st === 'pago'
+        ? `<button type="button" class="btn btn--ghost btn--sm" data-desfazer-paga-detalhe="${l.id}">Desfazer pagamento</button>`
+        : `<button type="button" class="btn btn--casa btn--sm" data-marcar-paga-detalhe="${l.id}">Marcar paga</button>
+           <button type="button" class="btn btn--ghost btn--sm" data-pagar-detalhe="${l.id}">Valor e método…</button>`;
 
     body.innerHTML = `
       <dl class="despesa-detail-grid">
@@ -286,9 +316,17 @@ const DashboardCasa = (function () {
       </div>
     `;
 
-    body.querySelector('[data-pagar]')?.addEventListener('click', (e) => {
+    body.querySelector('[data-marcar-paga-detalhe]')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      Lancamentos.abrirModalPagamento(l);
+      Lancamentos.marcarComoPaga(l);
+    });
+    body.querySelector('[data-pagar-detalhe]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Lancamentos.marcarComoPaga(l, { detalhado: true });
+    });
+    body.querySelector('[data-desfazer-paga-detalhe]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Lancamentos.desfazerPagamento(l);
     });
     body.querySelector('[data-edit-mod]')?.addEventListener('click', (e) => {
       e.stopPropagation();
