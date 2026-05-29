@@ -9,8 +9,8 @@
 
 // ——— 1. CONFIGURAÇÕES GLOBAIS ———
 
-/** ID da planilha BancoDeDadosDespesas (trecho entre /d/ e /edit na URL) */
-var SPREADSHEET_ID = '17SFH1FTixDgwrCwchH5uTs64WuFbXPSGzSMlvH4M9TU';
+/** ID da planilha — preenchido automaticamente por setupBancoDeDados(); pode colar manualmente se necessário */
+var SPREADSHEET_ID = '';
 
 /** URL do Web App (copiar também para config.js → GAS_URL) */
 var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec';
@@ -55,23 +55,32 @@ var COLS_HISTORICO = [
 // ——— 2. UTILITÁRIOS INTERNOS ———
 
 /**
- * Resolve o ID da planilha: constante SPREADSHEET_ID, Script Properties ou planilha ativa (editor).
+ * Abre a planilha: ativa (editor), URL salva no setup, ID salvo ou constante SPREADSHEET_ID.
+ */
+function getSpreadsheet_() {
+  var active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+
+  var props = PropertiesService.getScriptProperties();
+  var url = props.getProperty('SPREADSHEET_URL');
+  if (url) return SpreadsheetApp.openByUrl(url);
+
+  var id = getSpreadsheetId_();
+  return SpreadsheetApp.openById(id);
+}
+
+/**
+ * Resolve o ID da planilha: Script Properties, planilha ativa ou constante SPREADSHEET_ID.
  */
 function getSpreadsheetId_() {
-  if (SPREADSHEET_ID && SPREADSHEET_ID !== 'COLE_O_ID_DA_PLANILHA_AQUI') {
-    return SPREADSHEET_ID;
-  }
   var stored = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   if (stored) return stored;
   var active = SpreadsheetApp.getActiveSpreadsheet();
   if (active) return active.getId();
+  if (SPREADSHEET_ID) return SPREADSHEET_ID;
   throw new Error(
-    'Planilha não configurada. Execute setupBancoDeDados() no editor GAS (com a planilha aberta) ou cole SPREADSHEET_ID em Code.gs.'
+    'Planilha não configurada. Abra BancoDeDadosDespesas e execute setupBancoDeDados() no Apps Script.'
   );
-}
-
-function getSpreadsheet_() {
-  return SpreadsheetApp.openById(getSpreadsheetId_());
 }
 
 function getSheet_(name) {
@@ -650,11 +659,15 @@ function seedConfig_() {
 /** Execute uma vez no editor GAS para criar abas na planilha */
 function setupBancoDeDados() {
   var active = SpreadsheetApp.getActiveSpreadsheet();
-  if (active) {
-    PropertiesService.getScriptProperties().setProperty('SPREADSHEET_ID', active.getId());
-    Logger.log('SPREADSHEET_ID salvo: ' + active.getId());
-    Logger.log('Planilha: ' + active.getName());
+  if (!active) {
+    throw new Error('Abra a planilha BancoDeDadosDespesas antes de executar esta função.');
   }
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('SPREADSHEET_ID', active.getId());
+  props.setProperty('SPREADSHEET_URL', active.getUrl());
+  Logger.log('SPREADSHEET_ID salvo: ' + active.getId());
+  Logger.log('SPREADSHEET_URL salvo: ' + active.getUrl());
+  Logger.log('Planilha: ' + active.getName());
   inicializarBanco_();
   Logger.log('Banco inicializado — abas criadas em BancoDeDadosDespesas');
 }
