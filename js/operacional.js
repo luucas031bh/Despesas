@@ -16,12 +16,17 @@ const Operacional = (function () {
     carregar();
   }
 
+  function inputDataDoForm(form) {
+    return form?.elements?.namedItem('data_gasto');
+  }
+
   function abrirModal() {
     const backdrop = document.getElementById('modal-operacional-backdrop');
     const form = document.getElementById('form-operacional');
     if (!backdrop || !form) return;
     form.reset();
-    form.data.value = Utils.hojeISO();
+    const dataInput = inputDataDoForm(form);
+    if (dataInput) dataInput.value = Utils.hojeISO();
     backdrop.hidden = false;
   }
 
@@ -64,9 +69,11 @@ const Operacional = (function () {
     const form = e.target;
     try {
       Utils.setLoading(true);
+      const dataInput = inputDataDoForm(form);
+      const dataGasto = dataInput?.value || Utils.hojeISO();
       await API.criarOperacional({
         id: Utils.gerarId('op'),
-        data: form.data.value,
+        data: dataGasto,
         categoria: form.categoria.value,
         descricao: form.descricao.value,
         valor: Utils.parseMoeda(form.valor.value),

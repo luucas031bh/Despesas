@@ -213,7 +213,7 @@
           <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-op" aria-label="Fechar">✕</button>
         </div>
         <form id="form-operacional" class="modal__body">
-          <input type="hidden" name="data" />
+          <input type="hidden" name="data_gasto" id="op-data-gasto" />
           <div class="form-group">
             <label for="op-valor">Valor (R$) *</label>
             <input class="form-control" id="op-valor" name="valor" required inputmode="decimal" />
@@ -270,20 +270,20 @@
   </div>
 
   <script>
-    document.getElementById('header-version').textContent = '1.1.5';
+    document.getElementById('header-version').textContent = '1.1.6';
   </script>
-  <script src="config.js?v=1.1.5"></script>
-  <script src="js/utils.js?v=1.1.5"></script>
-  <script src="js/api.js?v=1.1.5"></script>
-  <script src="js/auth.js?v=1.1.5"></script>
-  <script src="js/modelos.js?v=1.1.5"></script>
-  <script src="js/leitor-boleto.js?v=1.1.5"></script>
-  <script src="js/lancamentos.js?v=1.1.5"></script>
-  <script src="js/dashboard-casa.js?v=1.1.5"></script>
-  <script src="js/dashboard-adny.js?v=1.1.5"></script>
-  <script src="js/operacional.js?v=1.1.5"></script>
-  <script src="js/relatorios.js?v=1.1.5"></script>
-  <script src="app.js?v=1.1.5"></script>
+  <script src="config.js?v=1.1.6"></script>
+  <script src="js/utils.js?v=1.1.6"></script>
+  <script src="js/api.js?v=1.1.6"></script>
+  <script src="js/auth.js?v=1.1.6"></script>
+  <script src="js/modelos.js?v=1.1.6"></script>
+  <script src="js/leitor-boleto.js?v=1.1.6"></script>
+  <script src="js/lancamentos.js?v=1.1.6"></script>
+  <script src="js/dashboard-casa.js?v=1.1.6"></script>
+  <script src="js/dashboard-adny.js?v=1.1.6"></script>
+  <script src="js/operacional.js?v=1.1.6"></script>
+  <script src="js/relatorios.js?v=1.1.6"></script>
+  <script src="app.js?v=1.1.6"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) lucide.createIcons();

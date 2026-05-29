@@ -125,6 +125,44 @@ function normalizeMesRef_(mes) {
   return s;
 }
 
+/**
+ * Garante YYYY-MM-DD — planilha Google envia Date, ISO com hora ou DD/MM/YYYY.
+ */
+function normalizeDataISO_(data) {
+  if (data === null || data === undefined || data === '') return '';
+
+  if (Object.prototype.toString.call(data) === '[object Date]') {
+    if (isNaN(data.getTime())) return '';
+    return data.getFullYear() + '-' +
+      ('0' + (data.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + data.getDate()).slice(-2);
+  }
+
+  var s = String(data).trim();
+  var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (iso) {
+    return iso[1] + '-' +
+      ('0' + Number(iso[2])).slice(-2) + '-' +
+      ('0' + Number(iso[3])).slice(-2);
+  }
+
+  var br = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (br) {
+    return br[3] + '-' +
+      ('0' + Number(br[2])).slice(-2) + '-' +
+      ('0' + Number(br[1])).slice(-2);
+  }
+
+  var d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    return d.getFullYear() + '-' +
+      ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + d.getDate()).slice(-2);
+  }
+
+  return s.substring(0, 10);
+}
+
 function sanitizarModelo_(mod) {
   if (!mod) return mod;
   if (mod.data_inicio) mod.data_inicio = normalizeMesRef_(mod.data_inicio);
@@ -503,16 +541,21 @@ function handlerPagarLancamento_(d) {
 
 function handlerGetOperacional_(data) {
   var rows = getAllRows_(SHEETS.OPERACIONAL_DIARIO, COLS_OPERACIONAL);
-  if (!data) return rows;
-  return rows.filter(function (r) {
-    return String(r.data).substring(0, 10) === String(data).substring(0, 10);
+  var normalizados = rows.map(function (r) {
+    r.data = normalizeDataISO_(r.data);
+    return r;
+  });
+  if (!data) return normalizados;
+  var alvo = normalizeDataISO_(data);
+  return normalizados.filter(function (r) {
+    return r.data === alvo;
   });
 }
 
 function handlerCriarOperacional_(d) {
   var obj = {
     id: d.id,
-    data: d.data,
+    data: normalizeDataISO_(d.data) || normalizeDataISO_(new Date()),
     categoria: d.categoria,
     descricao: d.descricao || '',
     valor: Number(d.valor) || 0,
