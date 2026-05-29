@@ -109,11 +109,12 @@ const App = (function () {
 
   async function init() {
     try {
+      await API.ping();
       AppState.config = await API.getConfig();
       if (AppState.config.mes_ativo) AppState.mesRef = AppState.config.mes_ativo;
     } catch (err) {
       Utils.showToast(
-        err?.message || 'API indisponível — verifique GAS_URL e SPREADSHEET_ID no Apps Script',
+        err?.message || 'API indisponível — cole o Code.gs completo no Apps Script e faça Nova versão.',
         'error'
       );
     }

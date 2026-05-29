@@ -84,7 +84,6 @@ function getSpreadsheetId_() {
 }
 
 function getSheet_(name) {
-  inicializarBanco_();
   return getSpreadsheet_().getSheetByName(name);
 }
 
@@ -134,6 +133,7 @@ function rowToObject_(headers, row) {
 
 function getAllRows_(sheetName, colDefs) {
   var sheet = getSheet_(sheetName);
+  if (!sheet) return [];
   var data = sheet.getDataRange().getValues();
   if (data.length < 2) return [];
   var headers = data[0].map(String);
@@ -158,6 +158,7 @@ function findRowIndex_(sheet, idCol, id) {
 
 function appendRow_(sheetName, colDefs, obj) {
   var sheet = getSheet_(sheetName);
+  if (!sheet) throw new Error('Aba não encontrada: ' + sheetName);
   var row = colDefs.map(function (c) {
     return obj[c] !== undefined && obj[c] !== null ? obj[c] : '';
   });
@@ -648,14 +649,27 @@ function criarAbaSeNaoExiste_(ss, name, headers) {
 }
 
 function seedConfig_() {
+  var sheet = getSpreadsheet_().getSheetByName(SHEETS.CONFIG);
+  if (!sheet) return;
+
   var defaults = [
     { chave: 'versao_sistema', valor: '1.0.0', descricao: 'Versão do sistema' },
     { chave: 'ultimo_fechamento', valor: '', descricao: 'Último mês fechado' },
     { chave: 'mes_ativo', valor: mesAtualRef_(), descricao: 'Mês de referência ativo' },
     { chave: 'geracao_automatica', valor: 'TRUE', descricao: 'Gerar lançamentos automaticamente' }
   ];
-  var rows = getAllRows_(SHEETS.CONFIG, COLS_CONFIG);
-  var chaves = rows.map(function (r) { return r.chave; });
+
+  var chaves = [];
+  var data = sheet.getDataRange().getValues();
+  if (data.length >= 2) {
+    var headers = data[0].map(String);
+    var chIdx = headers.indexOf('chave');
+    if (chIdx < 0) chIdx = 0;
+    for (var r = 1; r < data.length; r++) {
+      chaves.push(String(data[r][chIdx]));
+    }
+  }
+
   defaults.forEach(function (d) {
     if (chaves.indexOf(d.chave) < 0) {
       appendRow_(SHEETS.CONFIG, COLS_CONFIG, {

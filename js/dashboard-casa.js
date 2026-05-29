@@ -293,7 +293,7 @@ const DashboardCasa = (function () {
       renderLista(AppState.lancamentosCasa);
     } catch (err) {
       Utils.showToast(err.message, 'error');
-      el('lista-casa').innerHTML = `<div class="empty-state"><p>${err.message}</p><p>Configure GAS_URL em config.js</p></div>`;
+      el('lista-casa').innerHTML = `<div class="empty-state"><p>${err.message}</p><p>Se persistir: republicue o Code.gs no Apps Script (Nova versão).</p></div>`;
     } finally {
       Utils.setLoading(false);
     }

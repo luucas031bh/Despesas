@@ -104,6 +104,7 @@ const API = (function () {
   const getRelatorio = (area, de, ate) =>
     get({ action: 'getRelatorio', area, de, ate });
   const getConfig = () => get({ action: 'getConfig' });
+  const ping = () => get({ action: 'ping' });
   const fecharMes = (mes_ref, area) => post('fecharMes', { mes_ref, area });
   const gerarLancamentos = (mes_ref) => post('gerarLancamentos', { mes_ref });
 
@@ -128,6 +129,7 @@ const API = (function () {
     criarOperacional,
     getRelatorio,
     getConfig,
+    ping,
     fecharMes,
     gerarLancamentos,
     lerBoleto,
