@@ -57,6 +57,12 @@
 
   .bottom-nav-item--casa.is-active { color: var(--color-casa); }
   .bottom-nav-item--adny.is-active { color: var(--color-adny); }
+  .bottom-nav-item--mes.is-active { color: var(--color-accent); }
+
+  .bottom-nav-item {
+    min-width: 48px;
+    font-size: 0.5625rem;
+  }
 
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);

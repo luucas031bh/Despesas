@@ -55,6 +55,20 @@ const Utils = (function () {
     return `${y}-${m}-${day}`;
   }
 
+  /** Período legível: 01/05/2026 a 31/05/2026 */
+  function periodoMesLabel(mesRef) {
+    const [y, m] = mesRef.split('-').map(Number);
+    if (!y || !m) return mesRef;
+    const ultimo = new Date(y, m, 0).getDate();
+    const mm = String(m).padStart(2, '0');
+    return `01/${mm}/${y} a ${String(ultimo).padStart(2, '0')}/${mm}/${y}`;
+  }
+
+  function somarValores(itens, campo) {
+    const key = campo || 'valor';
+    return (itens || []).reduce((acc, item) => acc + (Number(item[key]) || 0), 0);
+  }
+
   /**
    * formatarMoeda — BRL
    * @param {number} valor
@@ -245,6 +259,8 @@ const Utils = (function () {
     gerarId,
     mesAtualRef,
     hojeISO,
+    periodoMesLabel,
+    somarValores,
     formatarMoeda,
     parseMoeda,
     formatarMesLabel,

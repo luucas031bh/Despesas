@@ -117,6 +117,11 @@
   color: var(--color-adny);
 }
 
+.nav-item--mes.is-active {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
 .nav-divider {
   height: 1px;
   background: var(--color-border);

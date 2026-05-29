@@ -31,7 +31,7 @@ const CONFIG = {
 
   SPREADSHEET_NAME: 'BancoDeDadosDespesas',
 
-  VERSION: '1.1.6',
+  VERSION: '1.2.0',
 
   /** Timeout HTTP para a API (ms) — GAS pode demorar no cold start */
   API_TIMEOUT: 45000,
@@ -105,8 +105,18 @@ const CONFIG = {
     CASA: 'casa',
     ADNY: 'adny',
     OPERACIONAL: 'operacional',
+    MES: 'mes',
     RELATORIOS: 'relatorios',
     CONFIG: 'config',
+  },
+
+  LABELS_CATEGORIA_OPERACIONAL: {
+    gasolina: 'Gasolina',
+    alimentacao: 'Alimentação',
+    cafe: 'Café',
+    marmita: 'Marmita',
+    lanche: 'Lanche',
+    outro: 'Outro',
   },
 
   /** Labels amigáveis para métodos de pagamento */

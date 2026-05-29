@@ -68,6 +68,10 @@ const App = (function () {
       case CONFIG.ROTAS.OPERACIONAL:
         Operacional.renderTemplate();
         break;
+      case CONFIG.ROTAS.MES:
+        Mes.renderTemplate();
+        await Mes.carregar();
+        break;
       case CONFIG.ROTAS.RELATORIOS:
         Relatorios.renderTemplate();
         break;
@@ -128,6 +132,7 @@ const App = (function () {
     Operacional.init();
     DashboardCasa.init();
     DashboardAdny.init();
+    Mes.init();
     Auth.init();
     bindNav();
     await navegar(CONFIG.ROTAS.CASA);

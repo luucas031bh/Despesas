@@ -98,6 +98,7 @@ const API = (function () {
 
   /* ——— Operacional ——— */
   const getOperacional = (data) => get({ action: 'getOperacional', data });
+  const getOperacionalMes = (mes) => get({ action: 'getOperacional', mes });
   const criarOperacional = (dados) => post('criarOperacional', dados);
 
   /* ——— Relatórios / sistema ——— */
@@ -127,6 +128,7 @@ const API = (function () {
     editarLancamento,
     pagarLancamento,
     getOperacional,
+    getOperacionalMes,
     criarOperacional,
     getRelatorio,
     getConfig,

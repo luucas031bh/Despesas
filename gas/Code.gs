@@ -369,7 +369,7 @@ function rotear_(action, params, body) {
     case 'getLancamentos':
       return respostaOk_(handlerGetLancamentos_(params.mes, params.area));
     case 'getOperacional':
-      return respostaOk_(handlerGetOperacional_(params.data));
+      return respostaOk_(handlerGetOperacional_(params.data, params.mes));
     case 'getRelatorio':
       return respostaOk_(handlerGetRelatorio_(params.area, params.de, params.ate));
     case 'getConfig':
@@ -539,12 +539,18 @@ function handlerPagarLancamento_(d) {
 
 // ——— 6. OPERACIONAL ———
 
-function handlerGetOperacional_(data) {
+function handlerGetOperacional_(data, mes) {
   var rows = getAllRows_(SHEETS.OPERACIONAL_DIARIO, COLS_OPERACIONAL);
   var normalizados = rows.map(function (r) {
     r.data = normalizeDataISO_(r.data);
     return r;
   });
+  if (mes) {
+    var mesNorm = normalizeMesRef_(mes);
+    return normalizados.filter(function (r) {
+      return r.data && r.data.substring(0, 7) === mesNorm;
+    });
+  }
   if (!data) return normalizados;
   var alvo = normalizeDataISO_(data);
   return normalizados.filter(function (r) {

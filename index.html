@@ -39,6 +39,9 @@
           <a href="#" class="nav-item" data-rota="operacional">
             <i data-lucide="zap"></i> Gasto rápido
           </a>
+          <a href="#" class="nav-item nav-item--mes" data-rota="mes">
+            <i data-lucide="calendar-days"></i> Mês
+          </a>
           <div class="nav-divider"></div>
           <a href="#" class="nav-item" data-rota="relatorios">
             <i data-lucide="bar-chart-2"></i> Relatórios
@@ -65,6 +68,9 @@
       </a>
       <a href="#" class="bottom-nav-item" data-rota="operacional">
         <i data-lucide="zap"></i> Rápido
+      </a>
+      <a href="#" class="bottom-nav-item bottom-nav-item--mes" data-rota="mes">
+        <i data-lucide="calendar-days"></i> Mês
       </a>
       <a href="#" class="bottom-nav-item" data-rota="relatorios">
         <i data-lucide="bar-chart-2"></i> Relat.
@@ -270,20 +276,21 @@
   </div>
 
   <script>
-    document.getElementById('header-version').textContent = '1.1.6';
+    document.getElementById('header-version').textContent = '1.2.0';
   </script>
-  <script src="config.js?v=1.1.6"></script>
-  <script src="js/utils.js?v=1.1.6"></script>
-  <script src="js/api.js?v=1.1.6"></script>
-  <script src="js/auth.js?v=1.1.6"></script>
-  <script src="js/modelos.js?v=1.1.6"></script>
-  <script src="js/leitor-boleto.js?v=1.1.6"></script>
-  <script src="js/lancamentos.js?v=1.1.6"></script>
-  <script src="js/dashboard-casa.js?v=1.1.6"></script>
-  <script src="js/dashboard-adny.js?v=1.1.6"></script>
-  <script src="js/operacional.js?v=1.1.6"></script>
-  <script src="js/relatorios.js?v=1.1.6"></script>
-  <script src="app.js?v=1.1.6"></script>
+  <script src="config.js?v=1.2.0"></script>
+  <script src="js/utils.js?v=1.2.0"></script>
+  <script src="js/api.js?v=1.2.0"></script>
+  <script src="js/auth.js?v=1.2.0"></script>
+  <script src="js/modelos.js?v=1.2.0"></script>
+  <script src="js/leitor-boleto.js?v=1.2.0"></script>
+  <script src="js/lancamentos.js?v=1.2.0"></script>
+  <script src="js/dashboard-casa.js?v=1.2.0"></script>
+  <script src="js/dashboard-adny.js?v=1.2.0"></script>
+  <script src="js/operacional.js?v=1.2.0"></script>
+  <script src="js/mes.js?v=1.2.0"></script>
+  <script src="js/relatorios.js?v=1.2.0"></script>
+  <script src="app.js?v=1.2.0"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) lucide.createIcons();
