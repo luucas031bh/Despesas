@@ -21,10 +21,12 @@ Se mudar a planilha ou o deploy, atualize **nos dois arquivos**.
 1. Abra a [planilha BancoDeDadosDespesas](https://docs.google.com/spreadsheets/d/17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU/edit)
 2. **Extensões → Apps Script**
 3. Apague todo o editor e cole **o `gas/Code.gs` inteiro** do repositório
-4. **Salvar**
-5. Execute **`setupBancoDeDados`** (uma vez, ou após mudar de planilha)
-6. Execute **`configurarGeminiApiKey()`** (uma vez, para leitor de boletos)
-7. **Implantar → Gerenciar implantações → Nova versão** (sempre após alterar o `.gs`)
+4. **Configurações do projeto** (engrenagem) → marque **Exibir o arquivo de manifesto appsscript.json no editor**
+5. Abra **`appsscript.json`** e cole o conteúdo de **`gas/appsscript.json`** (inclui permissão para chamar o Gemini)
+6. **Salvar**
+7. Execute **`setupBancoDeDados`** (uma vez, ou após mudar de planilha)
+8. Execute **`autorizarPermissoesGemini`** → **Autorizar** quando o Google pedir (rede externa)
+9. **Implantar → Gerenciar implantações → Nova versão** (sempre após alterar o `.gs`)
 
 ### 2. Frontend
 
@@ -47,7 +49,9 @@ Deve retornar `"success": true`.
 2. JPEG, PNG ou PDF → escolher área → revisar → **Salvar modelo**
 3. **Gerar mês** para criar lançamento
 
-Chave Gemini: só no `Code.gs` → função `configurarGeminiApiKey()` (não commitar chave em repositório público).
+Chave Gemini: constante `GEMINI_API_KEY` no topo do `Code.gs` (não commitar em repositório público).
+
+Se aparecer erro de **UrlFetchApp.fetch** / **script.external_request**: atualize o `appsscript.json`, rode **`autorizarPermissoesGemini`** e republicue o Web App.
 
 ## Abas da planilha
 

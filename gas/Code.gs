@@ -735,6 +735,18 @@ function configurarGeminiApiKey() {
   Logger.log('GEMINI_API_KEY configurada com sucesso.');
 }
 
+/**
+ * Execute UMA VEZ após atualizar appsscript.json (permissão de rede externa / Gemini).
+ * Aceite todas as permissões na janela do Google; depois faça Nova versão do Web App.
+ */
+function autorizarPermissoesGemini() {
+  getGeminiApiKey_();
+  var res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/', {
+    muteHttpExceptions: true
+  });
+  Logger.log('Rede externa OK (HTTP ' + res.getResponseCode() + '). Republicue o Web App.');
+}
+
 function getGeminiApiKey_() {
   var props = PropertiesService.getScriptProperties();
   var key = props.getProperty('GEMINI_API_KEY');
