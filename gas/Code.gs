@@ -696,7 +696,7 @@ var CATEGORIAS_ADNY_ = [
  * Obtenha em: https://aistudio.google.com/apikey
  */
 function configurarGeminiApiKey() {
-  var key = 'COLE_SUA_CHAVE_GEMINI_AQUI';
+  var key = 'AIzaSyAPHqojcfFP7NQ1PRoe3FLP93aDfuOPyM4';
   if (!key || key === 'COLE_SUA_CHAVE_GEMINI_AQUI') {
     throw new Error('Edite configurarGeminiApiKey() e cole sua chave antes de executar.');
   }
