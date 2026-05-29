@@ -115,7 +115,8 @@ const Modelos = (function () {
         new CustomEvent('adny:refresh-dashboard', { detail: { area: dados.area } })
       );
     } catch (err) {
-      Utils.showToast(err.message, 'error');
+      console.error('Erro ao salvar modelo:', err);
+      Utils.showToast(err.message || 'Erro ao salvar. Verifique conexão com o Google Apps Script.', 'error');
     } finally {
       Utils.setLoading(false);
     }

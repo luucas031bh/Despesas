@@ -2,65 +2,57 @@
 
 Sistema financeiro pessoal (Casa) + operacional (ADNY). Frontend estático + Google Apps Script + Google Sheets.
 
-**Planilha:** `BancoDeDadosDespesas`
+## URLs do projeto (já configuradas)
 
-## Estrutura
+| O quê | Onde está |
+|-------|-----------|
+| **Planilha** | [BancoDeDadosDespesas](https://docs.google.com/spreadsheets/d/17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU/edit) |
+| **ID planilha** | `17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU` |
+| **API (Web App)** | `https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec` |
+| **App (GitHub Pages)** | https://lucas031bh.github.io/Despesas/ |
 
-- `index.html` — entrada do app
-- `config.js` — URL do GAS e constantes
-- `gas/Code.gs` — backend (copiar para o Apps Script)
-- `js/leitor-boleto.js` — importação de boletos via Gemini
-- `css/`, `js/`, `components/`
+Esses valores estão em **`config.js`** (frontend) e no topo de **`gas/Code.gs`** (backend).  
+Se mudar a planilha ou o deploy, atualize **nos dois arquivos**.
 
-## Configuração (ordem)
+## Como publicar no Google (sempre arquivo completo)
 
-### 1. Google Sheets
+### 1. Apps Script
 
-1. Crie ou abra a planilha **BancoDeDadosDespesas** no Google Drive
-2. **Extensões → Apps Script** (script vinculado à planilha)
+1. Abra a [planilha BancoDeDadosDespesas](https://docs.google.com/spreadsheets/d/17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU/edit)
+2. **Extensões → Apps Script**
+3. Apague todo o editor e cole **o `gas/Code.gs` inteiro** do repositório
+4. **Salvar**
+5. Execute **`setupBancoDeDados`** (uma vez, ou após mudar de planilha)
+6. Execute **`configurarGeminiApiKey()`** (uma vez, para leitor de boletos)
+7. **Implantar → Gerenciar implantações → Nova versão** (sempre após alterar o `.gs`)
 
-### 2. Google Apps Script
+### 2. Frontend
 
-1. Cole o conteúdo de `gas/Code.gs`
-2. Execute **`setupBancoDeDados`** (autorize permissões) — cria as abas do banco
-3. **Implantar → Nova implantação → Aplicativo da Web**
-   - Executar como: **Eu**
-   - Quem tem acesso: **Qualquer pessoa**
-4. Copie a URL `/exec` e cole em `config.js` → `GAS_URL`
+Faça push no GitHub — o `config.js` já traz a mesma URL do GAS.
 
-**Importante:** toda alteração no `Code.gs` exige **nova implantação** (Gerenciar implantações → Editar → Nova versão).
+Teste local: `npx serve .`
 
-### 3. API Gemini (leitor de boletos — gratuita)
+## Testar se a API está OK
 
-1. Crie uma chave em [Google AI Studio](https://aistudio.google.com/apikey)
-2. No Apps Script, edite a função **`configurarGeminiApiKey()`** em `Code.gs` — cole sua chave na variável `key`
-3. Execute **`configurarGeminiApiKey()`** uma vez
-4. **Nova versão** do Web App (redeploy)
+Abra no navegador:
 
-A chave fica **somente** no Apps Script (Script Properties). Nunca coloque no GitHub.
+- Ping: [exec?action=ping](https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec?action=ping)
+- Config: [exec?action=getConfig](https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec?action=getConfig)
 
-### 4. Frontend (GitHub Pages ou local)
+Deve retornar `"success": true`.
 
-```bash
-npx serve .
-```
+## Importar boleto (Gemini)
 
-Publicado em: https://lucas031bh.github.io/Despesas/
+1. Dashboard **Casa** ou **ADNY** → **Importar boleto**
+2. JPEG, PNG ou PDF → escolher área → revisar → **Salvar modelo**
+3. **Gerar mês** para criar lançamento
 
-## Importar boleto (JPEG, PNG, PDF)
+Chave Gemini: só no `Code.gs` → função `configurarGeminiApiKey()` (não commitar chave em repositório público).
 
-1. No dashboard **Casa** ou **ADNY**, clique **Importar boleto**
-2. Envie foto ou PDF do boleto
-3. Escolha **Casa** ou **ADNY**
-4. O Gemini extrai valor, vencimento, empresa, linha digitável, etc.
-5. Responda perguntas se houver dúvidas (tipo fixo/variável, observações)
-6. Revise o **Novo modelo** pré-preenchido e clique **Salvar modelo**
-7. Clique **Gerar mês** para criar o lançamento do mês
+## Abas da planilha
 
-## Abas criadas automaticamente
-
-- `MODELOS`, `LANCAMENTOS`, `OPERACIONAL_DIARIO`, `CONFIG`, `HISTORICO_FECHAMENTOS`
+`MODELOS`, `LANCAMENTOS`, `OPERACIONAL_DIARIO`, `CONFIG`, `HISTORICO_FECHAMENTOS`
 
 ## Versão
 
-1.1.0 — leitor de boletos com Gemini + dashboards Casa/ADNY.
+1.1.0

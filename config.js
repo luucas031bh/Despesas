@@ -16,18 +16,25 @@
  * ============================================================
  */
 
-/** @type {object} Configurações globais — altere aqui antes de outros arquivos */
+/** @type {object} Configurações globais — manter igual ao bloco inicial de gas/Code.gs */
 const CONFIG = {
-  /** URL do Web App GAS após deploy (Implantar > Aplicativo da Web) */
+  /** Web App GAS */
   GAS_URL: 'https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec',
 
-  /** Nome da planilha no Google Drive (referência humana; ID real fica em gas/Code.gs → SPREADSHEET_ID) */
+  DEPLOYMENT_ID: 'AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw',
+
+  /** Planilha BancoDeDadosDespesas */
+  SPREADSHEET_ID: '17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU',
+
+  SPREADSHEET_URL:
+    'https://docs.google.com/spreadsheets/d/17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU/edit',
+
   SPREADSHEET_NAME: 'BancoDeDadosDespesas',
 
   VERSION: '1.1.0',
 
-  /** Timeout HTTP para a API (ms) */
-  API_TIMEOUT: 10000,
+  /** Timeout HTTP para a API (ms) — GAS pode demorar no cold start */
+  API_TIMEOUT: 45000,
 
   /** Timeout para leitura de boleto via Gemini (ms) */
   BOLETO_API_TIMEOUT: 90000,

@@ -45,7 +45,15 @@ const API = (function () {
       }
 
       const res = await fetch(url, opts);
-      const json = await res.json();
+      const text = await res.text();
+      let json;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new Error(
+          'Resposta inválida do servidor. Republicue o Apps Script (Nova versão) e confira GAS_URL.'
+        );
+      }
 
       if (!json.success) {
         const err = new Error(json.error || 'Erro na API');

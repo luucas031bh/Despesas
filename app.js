@@ -82,13 +82,17 @@ const App = (function () {
   function renderConfig() {
     document.getElementById('app-content').innerHTML = `
       <h1 class="page-title">Configurações</h1>
-      <div class="summary-card" style="max-width:560px">
+      <div class="summary-card" style="max-width:640px">
         <p><strong>Versão frontend:</strong> ${CONFIG.VERSION}</p>
         <p><strong>Planilha:</strong> ${CONFIG.SPREADSHEET_NAME}</p>
-        <p><strong>API GAS:</strong> <code style="font-size:0.75rem;word-break:break-all">${CONFIG.GAS_URL}</code></p>
+        <p><strong>ID planilha:</strong> <code style="font-size:0.75rem;word-break:break-all">${CONFIG.SPREADSHEET_ID}</code></p>
+        <p><strong>URL planilha:</strong><br />
+          <a href="${CONFIG.SPREADSHEET_URL}" target="_blank" rel="noopener" style="font-size:0.75rem;word-break:break-all">${CONFIG.SPREADSHEET_URL}</a></p>
+        <p><strong>API GAS:</strong><br />
+          <a href="${CONFIG.GAS_URL}?action=ping" target="_blank" rel="noopener" style="font-size:0.75rem;word-break:break-all">${CONFIG.GAS_URL}</a></p>
         <p class="despesa-card__meta" style="margin-top:1rem">
-          Edite <code>config.js</code> após cada deploy do Apps Script.
-          Execute <code>setupBancoDeDados()</code> no GAS uma vez para criar as abas.
+          No Google: cole o <code>gas/Code.gs</code> inteiro no Apps Script e faça <strong>Nova versão</strong> do Web App.
+          URLs acima já estão em <code>config.js</code> e <code>Code.gs</code>.
         </p>
       </div>
     `;

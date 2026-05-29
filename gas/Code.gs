@@ -7,15 +7,15 @@
  * ============================================================
  */
 
-// ——— 1. CONFIGURAÇÕES GLOBAIS ———
+// ——— 1. CONFIGURAÇÕES GLOBAIS (mantenha sincronizado com config.js) ———
 
-/** ID da planilha — preenchido automaticamente por setupBancoDeDados(); pode colar manualmente se necessário */
-var SPREADSHEET_ID = '';
+/** Planilha BancoDeDadosDespesas */
+var SPREADSHEET_ID = '17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU';
+var SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/17SEHLETtxDgwrCwchH5uTs64WuFbXPSGsSMIvH4M9TU/edit';
+var SPREADSHEET_NAME = 'BancoDeDadosDespesas';
 
-/** URL do Web App (copiar também para config.js → GAS_URL) */
+/** Web App GAS — mesma URL em config.js → GAS_URL */
 var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec';
-
-/** Código de implantação (Gerenciar implantações) */
 var DEPLOYMENT_ID = 'AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw';
 
 var SHEETS = {
@@ -62,7 +62,7 @@ function getSpreadsheet_() {
   if (active) return active;
 
   var props = PropertiesService.getScriptProperties();
-  var url = props.getProperty('SPREADSHEET_URL');
+  var url = props.getProperty('SPREADSHEET_URL') || SPREADSHEET_URL;
   if (url) return SpreadsheetApp.openByUrl(url);
 
   var id = getSpreadsheetId_();
@@ -242,12 +242,20 @@ function setConfigValor_(chave, valor) {
 
 function doGet(e) {
   try {
-    inicializarBanco_();
-    var mesAtivo = getConfigValor_('mes_ativo') || mesAtualRef_();
-    if (getConfigValor_('geracao_automatica') === 'TRUE') {
-      gerarLancamentosDoMes_(mesAtivo);
-    }
     var action = (e && e.parameter && e.parameter.action) || '';
+
+    if (action === 'ping') {
+      return respostaOk_({ status: 'online', versao: '1.1.0' });
+    }
+
+    inicializarBanco_();
+
+    // Gera lançamentos só ao carregar despesas — não em getConfig (evita timeout)
+    if (action === 'getLancamentos' && getConfigValor_('geracao_automatica') === 'TRUE') {
+      var mesRef = (e.parameter && e.parameter.mes) || getConfigValor_('mes_ativo') || mesAtualRef_();
+      gerarLancamentosDoMes_(mesRef);
+    }
+
     return rotear_(action, e && e.parameter ? e.parameter : {}, null);
   } catch (err) {
     return respostaErro_(err.message, 'DOGET_ERRO');
@@ -663,17 +671,23 @@ function seedConfig_() {
 /** Execute uma vez no editor GAS para criar abas na planilha */
 function setupBancoDeDados() {
   var active = SpreadsheetApp.getActiveSpreadsheet();
-  if (!active) {
-    throw new Error('Abra a planilha BancoDeDadosDespesas antes de executar esta função.');
-  }
   var props = PropertiesService.getScriptProperties();
-  props.setProperty('SPREADSHEET_ID', active.getId());
-  props.setProperty('SPREADSHEET_URL', active.getUrl());
-  Logger.log('SPREADSHEET_ID salvo: ' + active.getId());
-  Logger.log('SPREADSHEET_URL salvo: ' + active.getUrl());
-  Logger.log('Planilha: ' + active.getName());
+
+  if (active) {
+    props.setProperty('SPREADSHEET_ID', active.getId());
+    props.setProperty('SPREADSHEET_URL', active.getUrl());
+    Logger.log('SPREADSHEET_ID salvo: ' + active.getId());
+    Logger.log('SPREADSHEET_URL salvo: ' + active.getUrl());
+    Logger.log('Planilha: ' + active.getName());
+  } else {
+    props.setProperty('SPREADSHEET_ID', SPREADSHEET_ID);
+    props.setProperty('SPREADSHEET_URL', SPREADSHEET_URL);
+    Logger.log('Usando SPREADSHEET_ID do Code.gs: ' + SPREADSHEET_ID);
+    Logger.log('Usando SPREADSHEET_URL do Code.gs: ' + SPREADSHEET_URL);
+  }
+
   inicializarBanco_();
-  Logger.log('Banco inicializado — abas criadas em BancoDeDadosDespesas');
+  Logger.log('Banco inicializado — abas criadas em ' + SPREADSHEET_NAME);
 }
 
 // ——— 11. LEITOR DE BOLETOS (GEMINI) ———
