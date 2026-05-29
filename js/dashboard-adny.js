@@ -13,16 +13,30 @@ const DashboardAdny = (function () {
 
   function renderTemplate() {
     el('app-content').innerHTML = `
-      <h1 class="page-title page-title--adny">ADNY — Despesas</h1>
-      <div class="dashboard-toolbar">
-        <button type="button" class="btn btn--adny" id="btn-novo-modelo-adny">+ Novo modelo</button>
-        <button type="button" class="btn btn--ghost" id="btn-importar-boleto-adny">Importar boleto</button>
-        <button type="button" class="btn btn--ghost" id="btn-gerar-mes-adny">Gerar mês</button>
-        <button type="button" class="btn btn--ghost" id="btn-op-rapido">+ Gasto rápido</button>
+      <div class="hero-card hero-card--adny">
+        <div>
+          <span class="eyebrow">Visão rápida</span>
+          <h2>ADNY — Despesas</h2>
+          <p>Controle operacional da empresa no mês selecionado.</p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn btn--adny" id="btn-novo-modelo-adny">+ Novo modelo</button>
+          <button type="button" class="btn btn--ghost" id="btn-importar-boleto-adny">Importar boleto</button>
+          <button type="button" class="btn btn--ghost" id="btn-gerar-mes-adny">Gerar mês</button>
+          <button type="button" class="btn btn--ghost" id="btn-op-rapido">+ Gasto rápido</button>
+        </div>
       </div>
       <div class="summary-grid" id="summary-adny"></div>
-      <div class="filter-bar" id="filter-adny"></div>
-      <div class="despesa-list" id="lista-adny"></div>
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">Lançamentos</span>
+            <h3>Despesas do mês</h3>
+          </div>
+        </div>
+        <div class="filter-bar" id="filter-adny"></div>
+        <div class="despesa-list" id="lista-adny"></div>
+      </article>
     `;
     bindToolbar();
     bindFiltros();
@@ -84,10 +98,12 @@ const DashboardAdny = (function () {
     });
     el('mes-prev-adny')?.addEventListener('click', () => {
       AppState.mesRef = Utils.mesAnterior(AppState.mesRef);
+      App.atualizarHeaderMes?.();
       carregar();
     });
     el('mes-next-adny')?.addEventListener('click', () => {
       AppState.mesRef = Utils.mesProximo(AppState.mesRef);
+      App.atualizarHeaderMes?.();
       carregar();
     });
   }
@@ -270,7 +286,6 @@ const DashboardAdny = (function () {
       Utils.setLoading(true);
       el('mes-label-adny').textContent = Utils.formatarMesLabel(AppState.mesRef);
       AppState.areaAtiva = AREA;
-      document.getElementById('header-area-label').textContent = 'ADNY';
       const [lancamentosRaw, modelos] = await Promise.all([
         API.getLancamentos(AppState.mesRef, AREA),
         API.getModelos(AREA),

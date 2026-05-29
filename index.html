@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="ADNY Finance — controle financeiro pessoal e operacional" />
+  <meta name="theme-color" content="#101522" />
   <title>ADNY Finance</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/reset.css" />
@@ -17,66 +15,86 @@
   <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="app-header">
-      <div class="app-header__brand">ADNY Finance</div>
-      <div class="app-header__meta">
-        <span class="app-header__mes" id="header-mes">—</span>
-        <span id="header-area-label">Casa</span>
-        <span>v<span id="header-version">1.0.0</span></span>
-      </div>
-    </header>
-
-    <div class="app-body">
-      <aside class="app-sidebar" id="app-sidebar">
-        <nav class="nav-list">
-          <a href="#" class="nav-item nav-item--casa is-active" data-rota="casa">
-            <i data-lucide="home"></i> Casa
-          </a>
-          <a href="#" class="nav-item nav-item--adny" data-rota="adny">
-            <i data-lucide="briefcase"></i> ADNY
-          </a>
-          <a href="#" class="nav-item" data-rota="operacional">
-            <i data-lucide="zap"></i> Gasto rápido
-          </a>
-          <a href="#" class="nav-item nav-item--mes" data-rota="mes">
-            <i data-lucide="calendar-days"></i> Mês
-          </a>
-          <div class="nav-divider"></div>
-          <a href="#" class="nav-item" data-rota="relatorios">
-            <i data-lucide="bar-chart-2"></i> Relatórios
-          </a>
-          <a href="#" class="nav-item" data-rota="config">
-            <i data-lucide="settings"></i> Configurações
-          </a>
-        </nav>
-      </aside>
-
-      <main class="app-main">
-        <div class="app-main__inner" id="app-content" role="main">
-          <p>Carregando…</p>
+  <div class="app-shell" data-theme="dark">
+    <aside class="app-sidebar" id="app-sidebar" aria-label="Menu principal">
+      <div class="brand">
+        <div class="brand-mark">A</div>
+        <div>
+          <strong>ADNY Finance</strong>
+          <span>Controle de despesas</span>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <nav class="nav-list">
+        <a href="#" class="nav-item nav-item--casa is-active" data-rota="casa">
+          <span aria-hidden="true">🏠</span> Casa
+        </a>
+        <a href="#" class="nav-item nav-item--adny" data-rota="adny">
+          <span aria-hidden="true">💼</span> ADNY
+        </a>
+        <a href="#" class="nav-item nav-item--mes" data-rota="mes">
+          <span aria-hidden="true">📅</span> Mês
+        </a>
+        <a href="#" class="nav-item" data-rota="operacional">
+          <span aria-hidden="true">⚡</span> Gasto rápido
+        </a>
+        <div class="nav-divider"></div>
+        <a href="#" class="nav-item" data-rota="relatorios">
+          <span aria-hidden="true">📊</span> Relatórios
+        </a>
+        <a href="#" class="nav-item" data-rota="config">
+          <span aria-hidden="true">⚙️</span> Configurações
+        </a>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="eyebrow">Mês ativo</span>
+        <strong id="sideMonthLabel">—</strong>
+        <small id="connectionLabel">Verificando conexão…</small>
+        <small style="display:block;margin-top:8px;opacity:.7">v<span id="header-version">1.3.0</span></small>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow" id="header-area-label">Casa</span>
+          <h1 id="pageTitle">Casa</h1>
+          <span class="header-mes-hidden" id="header-mes" aria-hidden="true">—</span>
+        </div>
+        <div class="topbar-actions">
+          <div class="month-picker" aria-label="Selecionar mês">
+            <button type="button" id="topbar-prev-month" title="Mês anterior">‹</button>
+            <input id="topbar-month" type="month" aria-label="Mês de referência" />
+            <button type="button" id="topbar-next-month" title="Próximo mês">›</button>
+          </div>
+          <button class="icon-button" id="themeToggle" type="button" title="Alternar tema">🌙</button>
+        </div>
+      </header>
+
+      <div class="app-main__inner" id="app-content" role="main">
+        <p class="muted">Carregando…</p>
+      </div>
+    </main>
 
     <nav class="app-bottom-nav" aria-label="Navegação mobile">
       <a href="#" class="bottom-nav-item bottom-nav-item--casa is-active" data-rota="casa">
-        <i data-lucide="home"></i> Casa
+        <span aria-hidden="true">🏠</span> Casa
       </a>
       <a href="#" class="bottom-nav-item bottom-nav-item--adny" data-rota="adny">
-        <i data-lucide="briefcase"></i> ADNY
-      </a>
-      <a href="#" class="bottom-nav-item" data-rota="operacional">
-        <i data-lucide="zap"></i> Rápido
+        <span aria-hidden="true">💼</span> ADNY
       </a>
       <a href="#" class="bottom-nav-item bottom-nav-item--mes" data-rota="mes">
-        <i data-lucide="calendar-days"></i> Mês
+        <span aria-hidden="true">📅</span> Mês
+      </a>
+      <a href="#" class="bottom-nav-item" data-rota="operacional">
+        <span aria-hidden="true">⚡</span> Rápido
       </a>
       <a href="#" class="bottom-nav-item" data-rota="relatorios">
-        <i data-lucide="bar-chart-2"></i> Relat.
+        <span aria-hidden="true">📊</span> Relat.
       </a>
       <a href="#" class="bottom-nav-item" data-rota="config">
-        <i data-lucide="settings"></i> Config
+        <span aria-hidden="true">⚙️</span> Config
       </a>
     </nav>
   </div>
@@ -86,11 +104,13 @@
   </div>
   <div class="toast-container" id="toast-container"></div>
   <div id="modals-host">
-    <!-- Modais embutidos para funcionar sem fetch (GitHub Pages / serve local) -->
     <div class="modal-backdrop" id="modal-modelo-backdrop" hidden>
       <div class="modal modal--wide" role="dialog" aria-labelledby="modal-modelo-titulo">
         <div class="modal__header">
-          <h2 class="modal__title" id="modal-modelo-titulo">Novo modelo</h2>
+          <div>
+            <span class="eyebrow">Recorrência</span>
+            <h2 class="modal__title" id="modal-modelo-titulo">Novo modelo</h2>
+          </div>
           <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-modelo" aria-label="Fechar">✕</button>
         </div>
         <form id="form-modelo" class="modal__body">
@@ -178,14 +198,18 @@
         </div>
       </div>
     </div>
+
     <div class="modal-backdrop" id="modal-pagar-backdrop" hidden>
       <div class="modal" role="dialog">
         <div class="modal__header">
-          <h2 class="modal__title">Registrar pagamento</h2>
+          <div>
+            <span class="eyebrow">Pagamento</span>
+            <h2 class="modal__title">Registrar pagamento</h2>
+          </div>
           <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-pagar" aria-label="Fechar">✕</button>
         </div>
         <form id="form-pagar" class="modal__body">
-          <p id="pagar-nome" style="font-weight:600;margin-bottom:1rem"></p>
+          <p id="pagar-nome" class="payment-target" style="font-weight:600;margin-bottom:1rem"></p>
           <div class="form-group">
             <label for="pagar-valor">Valor pago (R$) *</label>
             <input class="form-control" id="pagar-valor" name="valor" required inputmode="decimal" />
@@ -212,10 +236,14 @@
         </div>
       </div>
     </div>
+
     <div class="modal-backdrop" id="modal-operacional-backdrop" hidden>
       <div class="modal" role="dialog">
         <div class="modal__header">
-          <h2 class="modal__title">+ Novo gasto</h2>
+          <div>
+            <span class="eyebrow">Gasto rápido</span>
+            <h2 class="modal__title">+ Novo gasto</h2>
+          </div>
           <button type="button" class="btn btn--ghost btn--sm" id="btn-fechar-modal-op" aria-label="Fechar">✕</button>
         </div>
         <form id="form-operacional" class="modal__body">
@@ -260,10 +288,12 @@
         </div>
       </div>
     </div>
+
     <div class="modal-backdrop" id="modal-boleto-backdrop" hidden>
       <div class="modal modal--wide" role="dialog" aria-labelledby="modal-boleto-titulo">
         <div class="modal__header">
           <div>
+            <span class="eyebrow">Importação</span>
             <h2 class="modal__title" id="modal-boleto-titulo">Importar boleto</h2>
             <span class="despesa-card__meta" id="boleto-step-label">Etapa 1 de 4</span>
           </div>
@@ -276,28 +306,20 @@
   </div>
 
   <script>
-    document.getElementById('header-version').textContent = '1.2.0';
+    document.getElementById('header-version').textContent = '1.3.0';
   </script>
-  <script src="config.js?v=1.2.0"></script>
-  <script src="js/utils.js?v=1.2.0"></script>
-  <script src="js/api.js?v=1.2.0"></script>
-  <script src="js/auth.js?v=1.2.0"></script>
-  <script src="js/modelos.js?v=1.2.0"></script>
-  <script src="js/leitor-boleto.js?v=1.2.0"></script>
-  <script src="js/lancamentos.js?v=1.2.0"></script>
-  <script src="js/dashboard-casa.js?v=1.2.0"></script>
-  <script src="js/dashboard-adny.js?v=1.2.0"></script>
-  <script src="js/operacional.js?v=1.2.0"></script>
-  <script src="js/mes.js?v=1.2.0"></script>
-  <script src="js/relatorios.js?v=1.2.0"></script>
-  <script src="app.js?v=1.2.0"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide) lucide.createIcons();
-    });
-    document.addEventListener('click', () => {
-      if (window.lucide) lucide.createIcons();
-    });
-  </script>
+  <script src="config.js?v=1.3.0"></script>
+  <script src="js/utils.js?v=1.3.0"></script>
+  <script src="js/api.js?v=1.3.0"></script>
+  <script src="js/auth.js?v=1.3.0"></script>
+  <script src="js/modelos.js?v=1.3.0"></script>
+  <script src="js/leitor-boleto.js?v=1.3.0"></script>
+  <script src="js/lancamentos.js?v=1.3.0"></script>
+  <script src="js/dashboard-casa.js?v=1.3.0"></script>
+  <script src="js/dashboard-adny.js?v=1.3.0"></script>
+  <script src="js/operacional.js?v=1.3.0"></script>
+  <script src="js/mes.js?v=1.3.0"></script>
+  <script src="js/relatorios.js?v=1.3.0"></script>
+  <script src="app.js?v=1.3.0"></script>
 </body>
 </html>

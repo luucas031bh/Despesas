@@ -87,7 +87,13 @@ const Mes = (function () {
 
   function renderTemplate() {
     document.getElementById('app-content').innerHTML = `
-      <h1 class="page-title">Mês</h1>
+      <div class="hero-card">
+        <div>
+          <span class="eyebrow">Controle mensal</span>
+          <h2>Visão do mês</h2>
+          <p>Casa, ADNY e gastos rápidos consolidados no período.</p>
+        </div>
+      </div>
       <div class="mes-toolbar">
         <div class="mes-nav">
           <button type="button" class="btn btn--ghost btn--sm" id="mes-prev" aria-label="Mês anterior">‹</button>
@@ -100,8 +106,9 @@ const Mes = (function () {
     `;
 
     function syncHeaderMes() {
-      const h = document.getElementById('header-mes');
-      if (h) h.textContent = Utils.formatarMesLabel(AppState.mesRef);
+      if (typeof App !== 'undefined' && App.atualizarHeaderMes) {
+        App.atualizarHeaderMes();
+      }
     }
 
     el('mes-prev')?.addEventListener('click', () => {
@@ -122,14 +129,8 @@ const Mes = (function () {
     const host = el('mes-sections');
     if (!host) return;
 
-    const areaLabel = document.getElementById('header-area-label');
-    if (areaLabel) areaLabel.textContent = 'Mês';
-
     if (label) label.textContent = Utils.formatarMesLabel(AppState.mesRef);
     if (periodo) periodo.textContent = 'Período: ' + Utils.periodoMesLabel(AppState.mesRef);
-
-    const headerMes = document.getElementById('header-mes');
-    if (headerMes) headerMes.textContent = Utils.formatarMesLabel(AppState.mesRef);
 
     try {
       Utils.setLoading(true);

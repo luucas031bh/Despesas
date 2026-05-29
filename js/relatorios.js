@@ -5,43 +5,55 @@
 const Relatorios = (function () {
   function renderTemplate() {
     document.getElementById('app-content').innerHTML = `
-      <h1 class="page-title">Relatórios</h1>
-      <form id="form-relatorio" class="filter-bar" style="align-items:flex-end">
-        <div class="form-group">
-          <label for="rel-area">Área</label>
-          <select id="rel-area" class="form-control" name="area">
-            <option value="casa">Casa</option>
-            <option value="adny">ADNY</option>
-          </select>
+      <div class="hero-card">
+        <div>
+          <span class="eyebrow">Análise</span>
+          <h2>Relatórios</h2>
+          <p>Consulte histórico por período e feche o mês quando necessário.</p>
         </div>
-        <div class="form-group">
-          <label for="rel-de">De (YYYY-MM)</label>
-          <input id="rel-de" class="form-control" name="de" type="month" required />
-        </div>
-        <div class="form-group">
-          <label for="rel-ate">Até (YYYY-MM)</label>
-          <input id="rel-ate" class="form-control" name="ate" type="month" required />
-        </div>
-        <button type="submit" class="btn btn--primary">Consultar</button>
-      </form>
-      <div class="relatorio-table-wrap" id="relatorio-resultado"></div>
-      <hr style="margin:2rem 0;border:none;border-top:1px solid var(--color-border)" />
-      <h2 class="page-title" style="font-size:1.25rem">Fechamento mensal</h2>
-      <form id="form-fechar" class="filter-bar">
-        <div class="form-group">
-          <label>Mês</label>
-          <input class="form-control" name="mes_ref" type="month" id="fechar-mes" required />
-        </div>
-        <div class="form-group">
-          <label>Área</label>
-          <select class="form-control" name="area">
-            <option value="casa">Casa</option>
-            <option value="adny">ADNY</option>
-            <option value="ambas">Ambas</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn--ghost">Fechar mês</button>
-      </form>
+      </div>
+      <article class="panel">
+        <span class="eyebrow">Consulta</span>
+        <h3 style="margin:.2rem 0 1rem">Por período</h3>
+        <form id="form-relatorio" class="filter-bar" style="align-items:flex-end;margin-bottom:0">
+          <div class="form-group">
+            <label for="rel-area">Área</label>
+            <select id="rel-area" class="form-control" name="area">
+              <option value="casa">Casa</option>
+              <option value="adny">ADNY</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="rel-de">De (YYYY-MM)</label>
+            <input id="rel-de" class="form-control" name="de" type="month" required />
+          </div>
+          <div class="form-group">
+            <label for="rel-ate">Até (YYYY-MM)</label>
+            <input id="rel-ate" class="form-control" name="ate" type="month" required />
+          </div>
+          <button type="submit" class="btn btn--primary">Consultar</button>
+        </form>
+        <div class="relatorio-table-wrap" id="relatorio-resultado" style="margin-top:1rem"></div>
+      </article>
+      <article class="panel">
+        <span class="eyebrow">Fechamento</span>
+        <h3 style="margin:.2rem 0 1rem">Fechar mês</h3>
+        <form id="form-fechar" class="filter-bar" style="margin-bottom:0">
+          <div class="form-group">
+            <label>Mês</label>
+            <input class="form-control" name="mes_ref" type="month" id="fechar-mes" required />
+          </div>
+          <div class="form-group">
+            <label>Área</label>
+            <select class="form-control" name="area">
+              <option value="casa">Casa</option>
+              <option value="adny">ADNY</option>
+              <option value="ambas">Ambas</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn--ghost">Fechar mês</button>
+        </form>
+      </article>
     `;
 
     const mes = AppState.mesRef;

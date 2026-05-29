@@ -5,12 +5,25 @@
 const Operacional = (function () {
   function renderTemplate() {
     document.getElementById('app-content').innerHTML = `
-      <h1 class="page-title page-title--adny">Gastos do dia</h1>
-      <div class="dashboard-toolbar">
-        <button type="button" class="btn btn--adny" id="btn-novo-operacional">+ Novo gasto</button>
+      <div class="hero-card hero-card--adny">
+        <div>
+          <span class="eyebrow">Operacional diário</span>
+          <h2>Gastos do dia</h2>
+          <p>Registre e acompanhe gastos rápidos de hoje.</p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn btn--adny" id="btn-novo-operacional">+ Novo gasto</button>
+        </div>
       </div>
-      <p class="app-header__meta" style="margin-bottom:1rem" id="op-data-label"></p>
-      <div class="operacional-quick" id="lista-operacional"></div>
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">Hoje</span>
+            <h3 id="op-data-label">—</h3>
+          </div>
+        </div>
+        <div class="operacional-quick" id="lista-operacional"></div>
+      </article>
     `;
     document.getElementById('btn-novo-operacional')?.addEventListener('click', abrirModal);
     carregar();

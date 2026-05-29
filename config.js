@@ -31,7 +31,7 @@ const CONFIG = {
 
   SPREADSHEET_NAME: 'BancoDeDadosDespesas',
 
-  VERSION: '1.2.0',
+  VERSION: '1.3.0',
 
   /** Timeout HTTP para a API (ms) — GAS pode demorar no cold start */
   API_TIMEOUT: 45000,

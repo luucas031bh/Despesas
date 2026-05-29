@@ -14,15 +14,29 @@ const DashboardCasa = (function () {
   function renderTemplate() {
     const root = el('app-content');
     root.innerHTML = `
-      <h1 class="page-title page-title--casa">Casa — Despesas</h1>
-      <div class="dashboard-toolbar">
-        <button type="button" class="btn btn--casa" id="btn-novo-modelo-casa">+ Novo modelo</button>
-        <button type="button" class="btn btn--ghost" id="btn-importar-boleto-casa">Importar boleto</button>
-        <button type="button" class="btn btn--ghost" id="btn-gerar-mes-casa">Gerar mês</button>
+      <div class="hero-card hero-card--casa">
+        <div>
+          <span class="eyebrow">Visão rápida</span>
+          <h2>Casa — Despesas</h2>
+          <p>Total, pagas, pendentes e vencidas do mês selecionado.</p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn btn--casa" id="btn-novo-modelo-casa">+ Novo modelo</button>
+          <button type="button" class="btn btn--ghost" id="btn-importar-boleto-casa">Importar boleto</button>
+          <button type="button" class="btn btn--ghost" id="btn-gerar-mes-casa">Gerar mês</button>
+        </div>
       </div>
       <div class="summary-grid" id="summary-casa"></div>
-      <div class="filter-bar" id="filter-casa"></div>
-      <div class="despesa-list" id="lista-casa"><p class="despesa-card__meta">Carregando despesas…</p></div>
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">Lançamentos</span>
+            <h3>Despesas do mês</h3>
+          </div>
+        </div>
+        <div class="filter-bar" id="filter-casa"></div>
+        <div class="despesa-list" id="lista-casa"><p class="despesa-card__meta">Carregando despesas…</p></div>
+      </article>
     `;
     bindToolbar();
     bindFiltros();
@@ -83,10 +97,12 @@ const DashboardCasa = (function () {
 
     el('mes-prev-casa')?.addEventListener('click', () => {
       AppState.mesRef = Utils.mesAnterior(AppState.mesRef);
+      App.atualizarHeaderMes?.();
       carregar();
     });
     el('mes-next-casa')?.addEventListener('click', () => {
       AppState.mesRef = Utils.mesProximo(AppState.mesRef);
+      App.atualizarHeaderMes?.();
       carregar();
     });
   }
@@ -343,7 +359,6 @@ const DashboardCasa = (function () {
       Utils.setLoading(true);
       el('mes-label-casa').textContent = Utils.formatarMesLabel(AppState.mesRef);
       AppState.areaAtiva = AREA;
-      document.getElementById('header-area-label').textContent = 'Casa';
       const [lancamentosRaw, modelos] = await Promise.all([
         API.getLancamentos(AppState.mesRef, AREA),
         API.getModelos(AREA),

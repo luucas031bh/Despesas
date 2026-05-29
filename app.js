@@ -16,8 +16,25 @@ const AppState = {
   config: {},
 };
 
+const PAGE_TITLES = {
+  casa: 'Casa',
+  adny: 'ADNY',
+  operacional: 'Gasto rápido',
+  mes: 'Mês',
+  relatorios: 'Relatórios',
+  config: 'Configurações',
+};
+
+const PAGE_EYEBROWS = {
+  casa: 'Finanças pessoais',
+  adny: 'Operacional',
+  operacional: 'Operacional diário',
+  mes: 'Controle mensal',
+  relatorios: 'Análise',
+  config: 'Ajustes',
+};
+
 const App = (function () {
-  /** Modais já estão no index.html; fetch opcional para desenvolvimento modular */
   async function carregarModais() {
     if (document.getElementById('modal-modelo-backdrop')) return;
     const host = document.getElementById('modals-host');
@@ -45,14 +62,81 @@ const App = (function () {
   }
 
   function atualizarHeaderMes() {
-    const el = document.getElementById('header-mes');
-    if (el) el.textContent = Utils.formatarMesLabel(AppState.mesRef);
+    const label = Utils.formatarMesLabel(AppState.mesRef);
+    const headerMes = document.getElementById('header-mes');
+    const sideMonth = document.getElementById('sideMonthLabel');
+    const topbarMonth = document.getElementById('topbar-month');
+    if (headerMes) headerMes.textContent = label;
+    if (sideMonth) sideMonth.textContent = label;
+    if (topbarMonth && topbarMonth.value !== AppState.mesRef) {
+      topbarMonth.value = AppState.mesRef;
+    }
+  }
+
+  function atualizarPageTitle(rota) {
+    const title = document.getElementById('pageTitle');
+    const eyebrow = document.getElementById('header-area-label');
+    if (title) title.textContent = PAGE_TITLES[rota] || 'ADNY Finance';
+    if (eyebrow) eyebrow.textContent = PAGE_EYEBROWS[rota] || 'ADNY Finance';
+  }
+
+  function atualizarConexao(ok) {
+    const el = document.getElementById('connectionLabel');
+    if (!el) return;
+    el.textContent = ok ? 'Backend conectado' : 'Sem conexão com a API';
+  }
+
+  function initTheme() {
+    const theme = localStorage.getItem('adny_theme') || 'dark';
+    document.querySelector('.app-shell')?.setAttribute('data-theme', theme);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+  }
+
+  function bindThemeToggle() {
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const shell = document.querySelector('.app-shell');
+      const next = shell?.dataset.theme === 'dark' ? 'light' : 'dark';
+      shell?.setAttribute('data-theme', next);
+      localStorage.setItem('adny_theme', next);
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = next === 'dark' ? '🌙' : '☀️';
+    });
+  }
+
+  function bindTopbarMonth() {
+    const input = document.getElementById('topbar-month');
+    const prev = document.getElementById('topbar-prev-month');
+    const next = document.getElementById('topbar-next-month');
+    if (!input) return;
+
+    input.value = AppState.mesRef;
+
+    input.addEventListener('change', async () => {
+      AppState.mesRef = Utils.mesRefUtil(input.value);
+      atualizarHeaderMes();
+      await navegar(AppState.rota);
+    });
+
+    prev?.addEventListener('click', async () => {
+      AppState.mesRef = Utils.mesAnterior(AppState.mesRef);
+      atualizarHeaderMes();
+      await navegar(AppState.rota);
+    });
+
+    next?.addEventListener('click', async () => {
+      AppState.mesRef = Utils.mesProximo(AppState.mesRef);
+      atualizarHeaderMes();
+      await navegar(AppState.rota);
+    });
   }
 
   async function navegar(rota) {
     AppState.rota = rota;
+    AppState.areaAtiva = rota === CONFIG.ROTAS.ADNY ? 'adny' : 'casa';
     atualizarNav(rota);
     atualizarHeaderMes();
+    atualizarPageTitle(rota);
 
     const content = document.getElementById('app-content');
 
@@ -85,20 +169,20 @@ const App = (function () {
 
   function renderConfig() {
     document.getElementById('app-content').innerHTML = `
-      <h1 class="page-title">Configurações</h1>
-      <div class="summary-card" style="max-width:640px">
+      <article class="panel config-panel">
+        <span class="eyebrow">Sistema</span>
+        <h2 style="margin:.2rem 0 1rem;font-size:1.25rem">Informações do projeto</h2>
         <p><strong>Versão frontend:</strong> ${CONFIG.VERSION}</p>
         <p><strong>Planilha:</strong> ${CONFIG.SPREADSHEET_NAME}</p>
-        <p><strong>ID planilha:</strong> <code style="font-size:0.75rem;word-break:break-all">${CONFIG.SPREADSHEET_ID}</code></p>
+        <p><strong>ID planilha:</strong> <code>${CONFIG.SPREADSHEET_ID}</code></p>
         <p><strong>URL planilha:</strong><br />
-          <a href="${CONFIG.SPREADSHEET_URL}" target="_blank" rel="noopener" style="font-size:0.75rem;word-break:break-all">${CONFIG.SPREADSHEET_URL}</a></p>
+          <a href="${CONFIG.SPREADSHEET_URL}" target="_blank" rel="noopener">${CONFIG.SPREADSHEET_URL}</a></p>
         <p><strong>API GAS:</strong><br />
-          <a href="${CONFIG.GAS_URL}?action=ping" target="_blank" rel="noopener" style="font-size:0.75rem;word-break:break-all">${CONFIG.GAS_URL}</a></p>
-        <p class="despesa-card__meta" style="margin-top:1rem">
+          <a href="${CONFIG.GAS_URL}?action=ping" target="_blank" rel="noopener">${CONFIG.GAS_URL}</a></p>
+        <p class="muted" style="margin-top:1rem">
           No Google: cole o <code>gas/Code.gs</code> inteiro no Apps Script e faça <strong>Nova versão</strong> do Web App.
-          URLs acima já estão em <code>config.js</code> e <code>Code.gs</code>.
         </p>
-      </div>
+      </article>
     `;
   }
 
@@ -112,11 +196,19 @@ const App = (function () {
   }
 
   async function init() {
+    initTheme();
+    bindThemeToggle();
+    bindTopbarMonth();
+    atualizarHeaderMes();
+
+    let apiOk = false;
     try {
       await API.ping();
+      apiOk = true;
       AppState.config = await API.getConfig();
       if (AppState.config.mes_ativo) {
         AppState.mesRef = Utils.mesRefUtil(AppState.config.mes_ativo);
+        atualizarHeaderMes();
       }
     } catch (err) {
       Utils.showToast(
@@ -124,6 +216,7 @@ const App = (function () {
         'error'
       );
     }
+    atualizarConexao(apiOk);
 
     await carregarModais();
     Modelos.init();
@@ -140,5 +233,5 @@ const App = (function () {
 
   document.addEventListener('DOMContentLoaded', init);
 
-  return { navegar, init };
+  return { navegar, init, atualizarHeaderMes };
 })();

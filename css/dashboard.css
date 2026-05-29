@@ -1,60 +1,78 @@
 /**
- * ADNY Finance — dashboard.css
- * Cards de resumo, lista de despesas com accordion.
+ * ADNY Finance — dashboard (listas, resumos, mês, operacional)
  */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .summary-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-5);
+  border-radius: 20px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
 
 .summary-card__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  display: block;
   color: var(--color-text-muted);
-  margin-bottom: var(--space-2);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .summary-card__value {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 700;
+  display: block;
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  font-weight: 800;
+  margin-top: 4px;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
 .summary-card__sub {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  margin-top: var(--space-1);
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  margin-top: 4px;
 }
 
-.summary-card--pagas .summary-card__value { color: var(--color-pago); }
-.summary-card--pendentes .summary-card__value { color: var(--color-aberto); }
-.summary-card--vencidas .summary-card__value { color: var(--color-vencido); }
+.summary-card--pagas .summary-card__value,
+.summary-card.success .summary-card__value {
+  color: var(--color-success);
+}
 
-.despesa-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+.summary-card--pendentes .summary-card__value,
+.summary-card.warning .summary-card__value {
+  color: var(--color-warning);
+}
+
+.summary-card--vencidas .summary-card__value,
+.summary-card.danger .summary-card__value {
+  color: var(--color-danger);
+}
+
+.despesa-list,
+.transactions-list {
+  display: grid;
+  gap: 10px;
 }
 
 .despesa-card {
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: 18px;
   overflow: hidden;
-  transition: box-shadow var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+[data-theme="light"] .despesa-card {
+  background: #fff;
 }
 
 .despesa-card:hover {
@@ -62,33 +80,33 @@
 }
 
 .despesa-card__header {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
   cursor: pointer;
 }
 
 .despesa-card__main {
-  flex: 1;
   min-width: 0;
 }
 
 .despesa-card__nome {
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: var(--space-1);
+  font-weight: 700;
+  font-size: 0.98rem;
+  margin-bottom: 4px;
 }
 
 .despesa-card__meta {
-  font-size: 0.8125rem;
+  font-size: 0.84rem;
   color: var(--color-text-muted);
 }
 
 .despesa-card__valor {
   font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 1.0625rem;
+  font-weight: 700;
+  font-size: 1.05rem;
   text-align: right;
   white-space: nowrap;
 }
@@ -97,23 +115,19 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-2);
+  gap: 8px;
 }
 
 .despesa-card__header-actions {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
 }
 
 .despesa-btn-status {
   white-space: nowrap;
-  min-height: 36px;
 }
 
 .despesa-btn-status--pago {
   color: var(--color-pago);
-  font-weight: 600;
 }
 
 .despesa-card__chevron {
@@ -127,14 +141,14 @@
 
 .despesa-card__body {
   display: none;
-  padding: 0 var(--space-5) var(--space-5);
+  padding: 0 14px 14px;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface-2);
 }
 
 .despesa-card.is-expanded .despesa-card__body {
   display: block;
-  padding-top: var(--space-4);
+  padding-top: 14px;
 }
 
 .despesa-detail-grid {
@@ -147,24 +161,22 @@
 
 .despesa-detail-grid dt {
   color: var(--color-text-muted);
-  font-weight: 500;
-}
-
-.despesa-detail-grid dd {
-  color: var(--color-text);
+  font-weight: 700;
 }
 
 .despesa-historico {
   margin: var(--space-4) 0;
   padding: var(--space-3);
   background: var(--color-surface);
-  border-radius: var(--radius-sm);
+  border-radius: 14px;
   font-size: 0.8125rem;
+  border: 1px solid var(--color-border);
 }
 
 .despesa-historico h4 {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
   margin-bottom: var(--space-2);
 }
@@ -177,34 +189,38 @@
 }
 
 .dashboard-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
 .operacional-quick {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-3);
+  gap: 10px;
 }
 
 .operacional-item {
-  background: var(--color-surface);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-4);
+}
+
+[data-theme="light"] .operacional-item {
+  background: #fff;
 }
 
 .operacional-item__valor {
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-adny);
+  font-size: 1.05rem;
 }
 
-/* ——— Visão Mês ——— */
 .mes-toolbar {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .mes-periodo {
@@ -214,15 +230,20 @@
 }
 
 .mes-resumo-geral {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .mes-resumo-geral .summary-card {
-  border-color: var(--color-accent);
+  border-color: rgba(215, 181, 109, 0.35);
 }
 
 .mes-section {
   margin-bottom: var(--space-8);
+  background: linear-gradient(135deg, var(--color-surface), var(--color-surface-2));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
 .mes-section__head {
@@ -235,20 +256,29 @@
   border-bottom: 2px solid var(--color-border);
 }
 
-.mes-section--casa .mes-section__head { border-bottom-color: var(--color-casa-border); }
-.mes-section--adny .mes-section__head { border-bottom-color: var(--color-adny-border); }
-.mes-section--rapidos .mes-section__head { border-bottom-color: var(--color-adny-border); }
+.mes-section--casa .mes-section__head {
+  border-bottom-color: var(--color-casa-border);
+}
+
+.mes-section--adny .mes-section__head,
+.mes-section--rapidos .mes-section__head {
+  border-bottom-color: var(--color-adny-border);
+}
 
 .mes-section__title {
-  font-family: var(--font-display);
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   margin: 0;
 }
 
-.mes-section--casa .mes-section__title { color: var(--color-casa); }
-.mes-section--adny .mes-section__title { color: var(--color-adny); }
-.mes-section--rapidos .mes-section__title { color: var(--color-adny); }
+.mes-section--casa .mes-section__title {
+  color: var(--color-casa);
+}
+
+.mes-section--adny .mes-section__title,
+.mes-section--rapidos .mes-section__title {
+  color: var(--color-adny);
+}
 
 .mes-section__sub {
   font-size: 0.8125rem;
@@ -257,46 +287,47 @@
 }
 
 .mes-section__total {
-  font-family: var(--font-display);
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
-.mes-section--casa .mes-section__total { color: var(--color-casa); }
+.mes-section--casa .mes-section__total {
+  color: var(--color-casa);
+}
+
 .mes-section--adny .mes-section__total,
-.mes-section--rapidos .mes-section__total { color: var(--color-adny); }
+.mes-section--rapidos .mes-section__total {
+  color: var(--color-adny);
+}
 
 .mes-section__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  display: grid;
+  gap: 10px;
 }
 
 .mes-item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--color-surface);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
 }
 
-.mes-item__main {
-  flex: 1;
-  min-width: 0;
+[data-theme="light"] .mes-item {
+  background: #fff;
 }
 
 .mes-item__nome {
-  font-weight: 600;
-  margin-bottom: var(--space-1);
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .mes-item__meta {
-  font-size: 0.8125rem;
+  font-size: 0.84rem;
   color: var(--color-text-muted);
 }
 
@@ -304,49 +335,45 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-2);
-  flex-shrink: 0;
+  gap: 8px;
 }
 
 .mes-item__valor {
   font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
 }
 
 .empty-state--compact {
   padding: var(--space-5);
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
 }
 
 .relatorio-table-wrap {
-  overflow-x: auto;
-  background: var(--color-surface);
+  overflow: auto;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  background: var(--color-surface);
 }
 
 .relatorio-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 620px;
   font-size: 0.875rem;
 }
 
 .relatorio-table th,
 .relatorio-table td {
-  padding: var(--space-3) var(--space-4);
+  padding: 13px 14px;
   text-align: left;
   border-bottom: 1px solid var(--color-border);
 }
 
 .relatorio-table th {
-  background: var(--color-surface-2);
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
   color: var(--color-text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--color-surface-2);
 }
 
 .relatorio-table td.num {
@@ -379,31 +406,19 @@
 .boleto-upload-btn {
   min-height: 48px;
   width: 100%;
-  justify-content: center;
-  text-align: center;
-}
-
-.boleto-arquivo-nome {
-  margin-top: var(--space-3);
-  word-break: break-word;
-}
-
-.boleto-preview {
-  margin-top: var(--space-3);
-  text-align: center;
 }
 
 .boleto-preview__img {
   max-height: 200px;
   margin: 0 auto;
-  border-radius: var(--radius-sm);
+  border-radius: 14px;
   border: 1px solid var(--color-border);
 }
 
 .boleto-preview__pdf {
   padding: var(--space-4);
   background: var(--color-surface-2);
-  border-radius: var(--radius-sm);
+  border-radius: 14px;
 }
 
 .boleto-area-btns {
@@ -413,22 +428,29 @@
 }
 
 .boleto-area-btn.is-selected {
-  box-shadow: 0 0 0 2px var(--color-accent);
-}
-
-.boleto-area-btn[data-area="casa"].is-selected {
-  box-shadow: 0 0 0 2px var(--color-casa);
-}
-
-.boleto-area-btn[data-area="adny"].is-selected {
-  box-shadow: 0 0 0 2px var(--color-adny);
-}
-
-.empty-state--pendentes {
-  text-align: center;
-  padding: var(--space-6);
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 .empty-state--pendentes .btn {
   margin-top: var(--space-4);
+}
+
+.config-panel {
+  max-width: 640px;
+}
+
+.config-panel p {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.config-panel code {
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+.config-panel a {
+  color: var(--color-blue);
+  font-size: 0.75rem;
+  word-break: break-all;
 }
