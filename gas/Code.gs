@@ -9,7 +9,8 @@
 
 // ——— 1. CONFIGURAÇÕES GLOBAIS ———
 
-var SPREADSHEET_NAME = 'BancoDeDadosDespesas';
+/** ID da planilha BancoDeDadosDespesas (trecho entre /d/ e /edit na URL) */
+var SPREADSHEET_ID = 'COLE_O_ID_DA_PLANILHA_AQUI';
 
 var SHEETS = {
   MODELOS: 'MODELOS',
@@ -47,8 +48,24 @@ var COLS_HISTORICO = [
 
 // ——— 2. UTILITÁRIOS INTERNOS ———
 
+/**
+ * Resolve o ID da planilha: constante SPREADSHEET_ID, Script Properties ou planilha ativa (editor).
+ */
+function getSpreadsheetId_() {
+  if (SPREADSHEET_ID && SPREADSHEET_ID !== 'COLE_O_ID_DA_PLANILHA_AQUI') {
+    return SPREADSHEET_ID;
+  }
+  var stored = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if (stored) return stored;
+  var active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active.getId();
+  throw new Error(
+    'Planilha não configurada. Execute setupBancoDeDados() no editor GAS (com a planilha aberta) ou cole SPREADSHEET_ID em Code.gs.'
+  );
+}
+
 function getSpreadsheet_() {
-  return SpreadsheetApp.openByName(SPREADSHEET_NAME);
+  return SpreadsheetApp.openById(getSpreadsheetId_());
 }
 
 function getSheet_(name) {
@@ -626,6 +643,12 @@ function seedConfig_() {
 
 /** Execute uma vez no editor GAS para criar abas na planilha */
 function setupBancoDeDados() {
+  var active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) {
+    PropertiesService.getScriptProperties().setProperty('SPREADSHEET_ID', active.getId());
+    Logger.log('SPREADSHEET_ID salvo: ' + active.getId());
+    Logger.log('Planilha: ' + active.getName());
+  }
   inicializarBanco_();
-  Logger.log('Banco inicializado em: ' + SPREADSHEET_NAME);
+  Logger.log('Banco inicializado — abas criadas em BancoDeDadosDespesas');
 }

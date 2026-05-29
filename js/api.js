@@ -23,12 +23,12 @@ const API = (function () {
    * @param {object} params query ou body
    * @returns {Promise<object>} data da resposta
    */
-  async function request(method, params) {
+  async function request(method, params, postUrl) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), CONFIG.API_TIMEOUT);
 
     try {
-      let url = CONFIG.GAS_URL;
+      let url = postUrl || CONFIG.GAS_URL;
       const opts = {
         method,
         signal: controller.signal,
@@ -68,7 +68,9 @@ const API = (function () {
   }
 
   function post(action, body) {
-    return request('POST', { action, ...body });
+    let url = CONFIG.GAS_URL;
+    url += (url.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(action);
+    return request('POST', { action, ...body }, url);
   }
 
   /* ——— Modelos ——— */

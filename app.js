@@ -107,8 +107,11 @@ const App = (function () {
     try {
       AppState.config = await API.getConfig();
       if (AppState.config.mes_ativo) AppState.mesRef = AppState.config.mes_ativo;
-    } catch {
-      /* API offline — usa mês local */
+    } catch (err) {
+      Utils.showToast(
+        err?.message || 'API indisponível — verifique GAS_URL e SPREADSHEET_ID no Apps Script',
+        'error'
+      );
     }
 
     await carregarModais();

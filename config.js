@@ -21,7 +21,7 @@ const CONFIG = {
   /** URL do Web App GAS após deploy (Implantar > Aplicativo da Web) */
   GAS_URL: 'https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec',
 
-  /** Nome da planilha no Google Drive (referência humana; GAS usa openByName) */
+  /** Nome da planilha no Google Drive (referência humana; ID real fica em gas/Code.gs → SPREADSHEET_ID) */
   SPREADSHEET_NAME: 'BancoDeDadosDespesas',
 
   VERSION: '1.0.0',
