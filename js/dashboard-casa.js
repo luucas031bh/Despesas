@@ -22,7 +22,7 @@ const DashboardCasa = (function () {
       </div>
       <div class="summary-grid" id="summary-casa"></div>
       <div class="filter-bar" id="filter-casa"></div>
-      <div class="despesa-list" id="lista-casa"></div>
+      <div class="despesa-list" id="lista-casa"><p class="despesa-card__meta">Carregando despesas…</p></div>
     `;
     bindToolbar();
     bindFiltros();
@@ -38,8 +38,14 @@ const DashboardCasa = (function () {
     el('btn-gerar-mes-casa')?.addEventListener('click', async () => {
       try {
         Utils.setLoading(true);
-        const r = await API.gerarLancamentos(AppState.mesRef);
-        Utils.showToast(`Gerados: ${r.gerados}, ignorados: ${r.ignorados}`);
+        const r = await API.repairGerar(AppState.mesRef);
+        let msg = `Gerados: ${r.gerados}, ignorados: ${r.ignorados}`;
+        if (r.datas_corrigidas) msg += `, datas corrigidas: ${r.datas_corrigidas}`;
+        if (r.ignorados_detalhe && r.ignorados_detalhe.length) {
+          msg += ' — ' + r.ignorados_detalhe.map((d) => `${d.nome}: ${d.motivo}`).join('; ');
+        }
+        if (r.erros && r.erros.length) msg += ' — ' + r.erros.join('; ');
+        Utils.showToast(msg, r.gerados > 0 ? undefined : 'error');
         await carregar();
       } catch (e) {
         Utils.showToast(e.message, 'error');
@@ -295,26 +301,18 @@ const DashboardCasa = (function () {
   }
 
   async function carregar() {
-    el('mes-label-casa').textContent = Utils.formatarMesLabel(AppState.mesRef);
-    AppState.areaAtiva = AREA;
-    document.getElementById('header-area-label').textContent = 'Casa';
-
     try {
       Utils.setLoading(true);
+      el('mes-label-casa').textContent = Utils.formatarMesLabel(AppState.mesRef);
+      AppState.areaAtiva = AREA;
+      document.getElementById('header-area-label').textContent = 'Casa';
       const [lancamentosRaw, modelos] = await Promise.all([
         API.getLancamentos(AppState.mesRef, AREA),
         API.getModelos(AREA),
       ]);
       modelosCache = modelos;
-      let lancamentos = lancamentosRaw;
-      const faltando = modelosSemLancamentoNoMes(modelos, lancamentos);
-      if (faltando.length > 0) {
-        const g = await API.gerarLancamentos(AppState.mesRef);
-        if ((g.gerados || 0) > 0) {
-          lancamentos = await API.getLancamentos(AppState.mesRef, AREA);
-        }
-      }
-      AppState.lancamentosCasa = Utils.aplicarStatusLista(lancamentos);
+      /* getLancamentos no GAS já roda gerarLancamentosDoMes_ quando geracao_automatica=TRUE */
+      AppState.lancamentosCasa = Utils.aplicarStatusLista(lancamentosRaw);
       renderResumo(AppState.lancamentosCasa);
       renderLista(AppState.lancamentosCasa);
     } catch (err) {

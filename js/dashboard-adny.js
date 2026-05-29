@@ -38,8 +38,13 @@ const DashboardAdny = (function () {
     el('btn-gerar-mes-adny')?.addEventListener('click', async () => {
       try {
         Utils.setLoading(true);
-        const r = await API.gerarLancamentos(AppState.mesRef);
-        Utils.showToast(`Gerados: ${r.gerados}`);
+        const r = await API.repairGerar(AppState.mesRef);
+        let msg = `Gerados: ${r.gerados}, ignorados: ${r.ignorados || 0}`;
+        if (r.datas_corrigidas) msg += `, datas corrigidas: ${r.datas_corrigidas}`;
+        if (r.ignorados_detalhe && r.ignorados_detalhe.length) {
+          msg += ' — ' + r.ignorados_detalhe.map((d) => `${d.nome}: ${d.motivo}`).join('; ');
+        }
+        Utils.showToast(msg, r.gerados > 0 ? undefined : 'error');
         await carregar();
       } catch (e) {
         Utils.showToast(e.message, 'error');
@@ -220,25 +225,17 @@ const DashboardAdny = (function () {
   }
 
   async function carregar() {
-    el('mes-label-adny').textContent = Utils.formatarMesLabel(AppState.mesRef);
-    AppState.areaAtiva = AREA;
-    document.getElementById('header-area-label').textContent = 'ADNY';
     try {
       Utils.setLoading(true);
+      el('mes-label-adny').textContent = Utils.formatarMesLabel(AppState.mesRef);
+      AppState.areaAtiva = AREA;
+      document.getElementById('header-area-label').textContent = 'ADNY';
       const [lancamentosRaw, modelos] = await Promise.all([
         API.getLancamentos(AppState.mesRef, AREA),
         API.getModelos(AREA),
       ]);
       modelosCache = modelos;
-      let lancamentos = lancamentosRaw;
-      const faltando = modelosSemLancamentoNoMes(modelos, lancamentos);
-      if (faltando.length > 0) {
-        const g = await API.gerarLancamentos(AppState.mesRef);
-        if ((g.gerados || 0) > 0) {
-          lancamentos = await API.getLancamentos(AppState.mesRef, AREA);
-        }
-      }
-      AppState.lancamentosAdny = Utils.aplicarStatusLista(lancamentos);
+      AppState.lancamentosAdny = Utils.aplicarStatusLista(lancamentosRaw);
       renderResumo(AppState.lancamentosAdny);
       renderLista(AppState.lancamentosAdny);
     } catch (err) {

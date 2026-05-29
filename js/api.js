@@ -107,6 +107,7 @@ const API = (function () {
   const ping = () => get({ action: 'ping' });
   const fecharMes = (mes_ref, area) => post('fecharMes', { mes_ref, area });
   const gerarLancamentos = (mes_ref) => post('gerarLancamentos', { mes_ref });
+  const repairGerar = (mes_ref) => post('repairGerar', { mes_ref });
 
   /* ——— Leitor de boletos (Gemini) ——— */
   const lerBoleto = (dados) => post('lerBoleto', dados, CONFIG.BOLETO_API_TIMEOUT);
@@ -132,6 +133,7 @@ const API = (function () {
     ping,
     fecharMes,
     gerarLancamentos,
+    repairGerar,
     lerBoleto,
     refinarBoleto,
   };

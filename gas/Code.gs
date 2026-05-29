@@ -100,17 +100,42 @@ function mesAtualRef_() {
   return d.getFullYear() + '-' + m;
 }
 
-/** Garante YYYY-MM (planilha ou input podem vir como 2026-5) */
+/**
+ * Garante YYYY-MM — planilha Google envia Date, ISO (2026-05-01T…) ou texto.
+ */
 function normalizeMesRef_(mes) {
-  if (!mes) return '';
+  if (mes === null || mes === undefined || mes === '') return '';
+
+  if (Object.prototype.toString.call(mes) === '[object Date]') {
+    if (isNaN(mes.getTime())) return '';
+    return mes.getFullYear() + '-' + ('0' + (mes.getMonth() + 1)).slice(-2);
+  }
+
   var s = String(mes).trim();
-  if (s.length > 7) s = s.substring(0, 7);
-  var p = s.split('-');
-  if (p.length < 2) return s;
-  var y = Number(p[0]);
-  var m = Number(p[1]);
-  if (!y || !m) return s;
-  return y + '-' + ('0' + m).slice(-2);
+  var iso = s.match(/^(\d{4})-(\d{1,2})/);
+  if (iso) {
+    return iso[1] + '-' + ('0' + Number(iso[2])).slice(-2);
+  }
+
+  var d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+  }
+
+  return s;
+}
+
+function sanitizarModelo_(mod) {
+  if (!mod) return mod;
+  if (mod.data_inicio) mod.data_inicio = normalizeMesRef_(mod.data_inicio);
+  if (mod.data_fim) mod.data_fim = normalizeMesRef_(mod.data_fim);
+  return mod;
+}
+
+function sanitizarLancamento_(l) {
+  if (!l) return l;
+  if (l.mes_ref) l.mes_ref = normalizeMesRef_(l.mes_ref);
+  return l;
 }
 
 function respostaOk_(data, message) {
@@ -329,6 +354,10 @@ function rotear_(action, params, body) {
       return respostaOk_(handlerFecharMes_(body.mes_ref, body.area));
     case 'gerarLancamentos':
       return respostaOk_(gerarLancamentosDoMes_(body.mes_ref));
+    case 'repairGerar':
+      return respostaOk_(handlerRepairGerar_(
+        (body && body.mes_ref) || (params && params.mes)
+      ));
     case 'lerBoleto':
       return respostaOk_(handlerLerBoleto_(body));
     case 'refinarBoleto':
@@ -344,7 +373,7 @@ function handlerGetModelos_(area) {
   var rows = getAllRows_(SHEETS.MODELOS, COLS_MODELOS);
   return rows.filter(function (m) {
     return boolVal_(m.ativo) && (!area || m.area === area);
-  });
+  }).map(sanitizarModelo_);
 }
 
 function handlerGetModelo_(id) {
@@ -422,7 +451,7 @@ function handlerGetLancamentos_(mes, area) {
 
 function handlerCriarLancamento_(d) {
   var now = nowISO_();
-  var mesRef = d.mes_ref;
+  var mesRef = normalizeMesRef_(d.mes_ref);
   var dia = Number(d.dia_vencimento) || 1;
   var obj = {
     id: d.id,
@@ -528,13 +557,18 @@ function handlerGetRelatorio_(area, de, ate) {
 function handlerGetConfig_() {
   var rows = getAllRows_(SHEETS.CONFIG, COLS_CONFIG);
   var cfg = {};
-  rows.forEach(function (r) { cfg[r.chave] = r.valor; });
+  rows.forEach(function (r) {
+    var v = r.valor;
+    if (r.chave === 'mes_ativo') v = normalizeMesRef_(v) || mesAtualRef_();
+    cfg[r.chave] = v;
+  });
   return cfg;
 }
 
 // ——— 8. GERAÇÃO AUTOMÁTICA ———
 
 function gerarLancamentoParaModeloNoMes_(mod, mesRef) {
+  sanitizarModelo_(mod);
   mesRef = normalizeMesRef_(mesRef);
   if (!deveGerarModelo_(mod, mesRef)) return false;
 
@@ -580,12 +614,65 @@ function gerarLancamentosParaModeloNovo_(mod, mesVisualizado) {
   return gerados;
 }
 
+function motivoIgnorarModelo_(mod, mesRef) {
+  sanitizarModelo_(mod);
+  mesRef = normalizeMesRef_(mesRef);
+  if (!boolVal_(mod.ativo)) return 'modelo inativo';
+  if (mod.data_inicio && mesRef < normalizeMesRef_(mod.data_inicio)) {
+    return 'mes antes do inicio (' + normalizeMesRef_(mod.data_inicio) + ')';
+  }
+  if (mod.data_fim && mesRef > normalizeMesRef_(mod.data_fim)) {
+    return 'mes apos o fim';
+  }
+  var lancamentos = getAllRows_(SHEETS.LANCAMENTOS, COLS_LANCAMENTOS);
+  var existe = lancamentos.some(function (l) {
+    return l.modelo_id === mod.id && normalizeMesRef_(l.mes_ref) === mesRef;
+  });
+  if (existe) return 'ja existe lancamento neste mes';
+  return '';
+}
+
+function corrigirDatasModelosNaPlanilha_() {
+  var rows = getAllRows_(SHEETS.MODELOS, COLS_MODELOS);
+  var corrigidos = 0;
+  rows.forEach(function (mod) {
+    var di = mod.data_inicio ? normalizeMesRef_(mod.data_inicio) : '';
+    var df = mod.data_fim ? normalizeMesRef_(mod.data_fim) : '';
+    var upd = {};
+    if (di && String(mod.data_inicio) !== di) upd.data_inicio = di;
+    if (mod.data_fim && String(mod.data_fim) !== df) upd.data_fim = df;
+    if (Object.keys(upd).length) {
+      updateRowById_(SHEETS.MODELOS, COLS_MODELOS, mod.id, upd);
+      corrigidos++;
+    }
+  });
+  return corrigidos;
+}
+
+/**
+ * Execute no editor GAS (uma vez): corrige datas e gera lancamentos de maio/2026.
+ */
+function executarRepairGerar() {
+  var r = handlerRepairGerar_('2026-05');
+  Logger.log(JSON.stringify(r));
+}
+
+/** Corrige datas na planilha e gera lancamentos — pode chamar pelo app ou pelo editor */
+function handlerRepairGerar_(mesRef) {
+  mesRef = normalizeMesRef_(mesRef || getConfigValor_('mes_ativo') || mesAtualRef_());
+  var planilha = corrigirDatasModelosNaPlanilha_();
+  var r = gerarLancamentosDoMes_(mesRef);
+  r.datas_corrigidas = planilha;
+  return r;
+}
+
 function gerarLancamentosDoMes_(mesRef) {
   mesRef = normalizeMesRef_(mesRef);
   var modelos = handlerGetModelos_(null);
   var gerados = 0;
   var ignorados = 0;
   var erros = [];
+  var ignorados_detalhe = [];
 
   modelos.forEach(function (mod) {
     try {
@@ -593,6 +680,10 @@ function gerarLancamentosDoMes_(mesRef) {
         gerados++;
       } else {
         ignorados++;
+        ignorados_detalhe.push({
+          nome: mod.nome,
+          motivo: motivoIgnorarModelo_(mod, mesRef) || 'nao elegivel'
+        });
       }
     } catch (e) {
       erros.push(mod.nome + ': ' + e.message);
@@ -600,10 +691,18 @@ function gerarLancamentosDoMes_(mesRef) {
   });
 
   setConfigValor_('mes_ativo', mesRef);
-  return { mes_ref: mesRef, gerados: gerados, ignorados: ignorados, erros: erros };
+  return {
+    mes_ref: mesRef,
+    gerados: gerados,
+    ignorados: ignorados,
+    ignorados_detalhe: ignorados_detalhe,
+    erros: erros,
+    total_modelos: modelos.length
+  };
 }
 
 function deveGerarModelo_(mod, mesRef) {
+  sanitizarModelo_(mod);
   mesRef = normalizeMesRef_(mesRef);
   if (!boolVal_(mod.ativo)) return false;
   if (mod.data_inicio && mesRef < normalizeMesRef_(mod.data_inicio)) return false;

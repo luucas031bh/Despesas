@@ -106,22 +106,17 @@ const Modelos = (function () {
       if (editandoId) {
         await API.editarModelo({ id: editandoId, ...dados });
         Utils.showToast('Modelo atualizado.');
-        await API.gerarLancamentos(AppState.mesRef);
       } else {
         const criado = await API.criarModelo({
           id: Utils.gerarId('mod'),
           mes_ref: AppState.mesRef,
           ...dados,
         });
-        let ok = (criado.lancamentos_gerados || 0) > 0;
-        if (!ok) {
-          const g = await API.gerarLancamentos(AppState.mesRef);
-          ok = (g.gerados || 0) > 0;
-        }
+        const ok = (criado.lancamentos_gerados || 0) > 0;
         Utils.showToast(
           ok
             ? 'Despesa adicionada à lista do mês.'
-            : 'Modelo salvo na planilha. Toque em "Gerar mês" ou confira o mês exibido no topo.'
+            : 'Modelo salvo. Toque em "Gerar mês" se não aparecer na lista.'
         );
       }
       fecharModal();
