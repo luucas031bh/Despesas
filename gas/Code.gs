@@ -100,6 +100,19 @@ function mesAtualRef_() {
   return d.getFullYear() + '-' + m;
 }
 
+/** Garante YYYY-MM (planilha ou input podem vir como 2026-5) */
+function normalizeMesRef_(mes) {
+  if (!mes) return '';
+  var s = String(mes).trim();
+  if (s.length > 7) s = s.substring(0, 7);
+  var p = s.split('-');
+  if (p.length < 2) return s;
+  var y = Number(p[0]);
+  var m = Number(p[1]);
+  if (!y || !m) return s;
+  return y + '-' + ('0' + m).slice(-2);
+}
+
 function respostaOk_(data, message) {
   return ContentService
     .createTextOutput(JSON.stringify({
@@ -255,8 +268,10 @@ function doGet(e) {
     inicializarBanco_();
 
     // Gera lançamentos só ao carregar despesas — não em getConfig (evita timeout)
-    if (action === 'getLancamentos' && getConfigValor_('geracao_automatica') === 'TRUE') {
-      var mesRef = (e.parameter && e.parameter.mes) || getConfigValor_('mes_ativo') || mesAtualRef_();
+    if (action === 'getLancamentos' && boolVal_(getConfigValor_('geracao_automatica'))) {
+      var mesRef = normalizeMesRef_(
+        (e.parameter && e.parameter.mes) || getConfigValor_('mes_ativo') || mesAtualRef_()
+      );
       gerarLancamentosDoMes_(mesRef);
     }
 
@@ -352,8 +367,8 @@ function handlerCriarModelo_(d) {
     dia_vencimento: Number(d.dia_vencimento) || 1,
     total_parcelas: Number(d.total_parcelas) || 0,
     parcela_atual: Number(d.parcela_atual) || 1,
-    data_inicio: d.data_inicio,
-    data_fim: d.data_fim || '',
+    data_inicio: normalizeMesRef_(d.data_inicio) || mesAtualRef_(),
+    data_fim: d.data_fim ? normalizeMesRef_(d.data_fim) : '',
     empresa: d.empresa || '',
     recebedor: d.recebedor || '',
     telefone: d.telefone || '',
@@ -365,6 +380,9 @@ function handlerCriarModelo_(d) {
     atualizado_em: now
   };
   appendRow_(SHEETS.MODELOS, COLS_MODELOS, obj);
+  var mesVisual = normalizeMesRef_(d.mes_ref || getConfigValor_('mes_ativo') || mesAtualRef_());
+  var lancamentosGerados = gerarLancamentosParaModeloNovo_(obj, mesVisual);
+  obj.lancamentos_gerados = lancamentosGerados;
   return obj;
 }
 
@@ -388,9 +406,10 @@ function handlerArquivarModelo_(id) {
 // ——— 5. HANDLERS LANÇAMENTOS ———
 
 function handlerGetLancamentos_(mes, area) {
+  var mesNorm = normalizeMesRef_(mes);
   var rows = getAllRows_(SHEETS.LANCAMENTOS, COLS_LANCAMENTOS);
   var filtrados = rows.filter(function (l) {
-    return l.mes_ref === mes && (!area || l.area === area);
+    return normalizeMesRef_(l.mes_ref) === mesNorm && (!area || l.area === area);
   });
   return filtrados.map(function (l) {
     var st = calcularStatusLanc_(l);
@@ -515,46 +534,66 @@ function handlerGetConfig_() {
 
 // ——— 8. GERAÇÃO AUTOMÁTICA ———
 
-function gerarLancamentosDoMes_(mesRef) {
-  var modelos = handlerGetModelos_(null);
+function gerarLancamentoParaModeloNoMes_(mod, mesRef) {
+  mesRef = normalizeMesRef_(mesRef);
+  if (!deveGerarModelo_(mod, mesRef)) return false;
+
   var lancamentos = getAllRows_(SHEETS.LANCAMENTOS, COLS_LANCAMENTOS);
+  var existe = lancamentos.some(function (l) {
+    return l.modelo_id === mod.id && normalizeMesRef_(l.mes_ref) === mesRef;
+  });
+  if (existe) return false;
+
+  var parcelaNum = Number(mod.parcela_atual) || 1;
+  var lancId = 'lan_' + new Date().getTime() + '_' + Math.random().toString(36).slice(2, 6);
+  var dia = Number(mod.dia_vencimento) || 1;
+
+  handlerCriarLancamento_({
+    id: lancId,
+    modelo_id: mod.id,
+    area: mod.area,
+    categoria: mod.categoria,
+    nome: mod.nome,
+    mes_ref: mesRef,
+    valor: Number(mod.valor_base) || 0,
+    dia_vencimento: dia,
+    data_vencimento: dataVencimentoDoMes_(mesRef, dia),
+    status: 'aberto',
+    parcela_numero: parcelaNum,
+    gerado_auto: true
+  });
+  return true;
+}
+
+/** Ao criar modelo: gera lançamento no mês exibido e no mês de início */
+function gerarLancamentosParaModeloNovo_(mod, mesVisualizado) {
+  var meses = {};
+  if (mesVisualizado) meses[normalizeMesRef_(mesVisualizado)] = true;
+  if (mod.data_inicio) meses[normalizeMesRef_(mod.data_inicio)] = true;
+  var ativo = normalizeMesRef_(getConfigValor_('mes_ativo') || mesAtualRef_());
+  meses[ativo] = true;
+
+  var gerados = 0;
+  Object.keys(meses).forEach(function (m) {
+    if (m && gerarLancamentoParaModeloNoMes_(mod, m)) gerados++;
+  });
+  return gerados;
+}
+
+function gerarLancamentosDoMes_(mesRef) {
+  mesRef = normalizeMesRef_(mesRef);
+  var modelos = handlerGetModelos_(null);
   var gerados = 0;
   var ignorados = 0;
   var erros = [];
 
   modelos.forEach(function (mod) {
     try {
-      if (!deveGerarModelo_(mod, mesRef)) {
+      if (gerarLancamentoParaModeloNoMes_(mod, mesRef)) {
+        gerados++;
+      } else {
         ignorados++;
-        return;
       }
-      var existe = lancamentos.some(function (l) {
-        return l.modelo_id === mod.id && l.mes_ref === mesRef;
-      });
-      if (existe) {
-        ignorados++;
-        return;
-      }
-
-      var parcelaNum = Number(mod.parcela_atual) || 1;
-      var lancId = 'lan_' + new Date().getTime() + '_' + Math.random().toString(36).slice(2, 6);
-      var dia = Number(mod.dia_vencimento) || 1;
-
-      handlerCriarLancamento_({
-        id: lancId,
-        modelo_id: mod.id,
-        area: mod.area,
-        categoria: mod.categoria,
-        nome: mod.nome,
-        mes_ref: mesRef,
-        valor: Number(mod.valor_base) || 0,
-        dia_vencimento: dia,
-        data_vencimento: dataVencimentoDoMes_(mesRef, dia),
-        status: 'aberto',
-        parcela_numero: parcelaNum,
-        gerado_auto: true
-      });
-      gerados++;
     } catch (e) {
       erros.push(mod.nome + ': ' + e.message);
     }
@@ -565,9 +604,10 @@ function gerarLancamentosDoMes_(mesRef) {
 }
 
 function deveGerarModelo_(mod, mesRef) {
+  mesRef = normalizeMesRef_(mesRef);
   if (!boolVal_(mod.ativo)) return false;
-  if (mod.data_inicio && mesRef < mod.data_inicio) return false;
-  if (mod.data_fim && mesRef > mod.data_fim) return false;
+  if (mod.data_inicio && mesRef < normalizeMesRef_(mod.data_inicio)) return false;
+  if (mod.data_fim && mesRef > normalizeMesRef_(mod.data_fim)) return false;
 
   var tipo = mod.tipo;
   if (tipo === 'fixa_recorrente' || tipo === 'recorrente_variavel') return true;

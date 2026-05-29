@@ -183,8 +183,8 @@ const DashboardCasa = (function () {
     if (!lista.length) {
       container.innerHTML = `
         <div class="empty-state">
-          <strong>Nenhuma despesa neste filtro</strong>
-          <p>Cadastre um modelo ou gere os lançamentos do mês.</p>
+          <strong>Nenhuma despesa neste mês</strong>
+          <p>Cadastre com <strong>+ Novo modelo</strong> ou toque em <strong>Gerar mês</strong> se já cadastrou na planilha.</p>
         </div>`;
       return;
     }

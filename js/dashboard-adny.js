@@ -140,7 +140,7 @@ const DashboardAdny = (function () {
     const lista = filtrarLista(lancamentos);
     const container = el('lista-adny');
     if (!lista.length) {
-      container.innerHTML = `<div class="empty-state"><strong>Nenhuma despesa</strong><p>Cadastre modelos ou gere o mês.</p></div>`;
+      container.innerHTML = `<div class="empty-state"><strong>Nenhuma despesa neste mês</strong><p>Cadastre com <strong>+ Novo modelo</strong> ou toque em <strong>Gerar mês</strong>.</p></div>`;
       return;
     }
     container.innerHTML = lista

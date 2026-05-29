@@ -106,9 +106,23 @@ const Modelos = (function () {
       if (editandoId) {
         await API.editarModelo({ id: editandoId, ...dados });
         Utils.showToast('Modelo atualizado.');
+        await API.gerarLancamentos(AppState.mesRef);
       } else {
-        await API.criarModelo({ id: Utils.gerarId('mod'), ...dados });
-        Utils.showToast('Modelo criado. Clique em "Gerar mês" para criar o lançamento.');
+        const criado = await API.criarModelo({
+          id: Utils.gerarId('mod'),
+          mes_ref: AppState.mesRef,
+          ...dados,
+        });
+        let ok = (criado.lancamentos_gerados || 0) > 0;
+        if (!ok) {
+          const g = await API.gerarLancamentos(AppState.mesRef);
+          ok = (g.gerados || 0) > 0;
+        }
+        Utils.showToast(
+          ok
+            ? 'Despesa adicionada à lista do mês.'
+            : 'Modelo salvo na planilha. Toque em "Gerar mês" ou confira o mês exibido no topo.'
+        );
       }
       fecharModal();
       document.dispatchEvent(
