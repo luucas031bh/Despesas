@@ -18,6 +18,9 @@ var SPREADSHEET_NAME = 'BancoDeDadosDespesas';
 var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw/exec';
 var DEPLOYMENT_ID = 'AKfycbz7sY5mPWoOP0SaR4kemU1pDedHPo9O5LFwXkiD-TGaKTW86_lh4VCCb3n_LyQg6Qw';
 
+/** Google AI Studio — https://aistudio.google.com/apikey */
+var GEMINI_API_KEY = 'AIzaSyAPHqojcfFP7NQ1PRoe3FLP93aDfuOPyM4';
+
 var SHEETS = {
   MODELOS: 'MODELOS',
   LANCAMENTOS: 'LANCAMENTOS',
@@ -707,6 +710,7 @@ function setupBancoDeDados() {
 // ——— 11. LEITOR DE BOLETOS (GEMINI) ———
 
 var GEMINI_MODEL = 'gemini-2.0-flash';
+var GEMINI_MODEL_FALLBACK = 'gemini-1.5-flash';
 
 var CATEGORIAS_CASA_ = [
   'Luz', 'Água', 'Gás', 'Internet', 'Prestação Casa', 'Condomínio',
@@ -724,18 +728,24 @@ var CATEGORIAS_ADNY_ = [
  * Obtenha em: https://aistudio.google.com/apikey
  */
 function configurarGeminiApiKey() {
-  var key = 'AIzaSyAPHqojcfFP7NQ1PRoe3FLP93aDfuOPyM4';
-  if (!key || key === 'COLE_SUA_CHAVE_GEMINI_AQUI') {
-    throw new Error('Edite configurarGeminiApiKey() e cole sua chave antes de executar.');
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'COLE_SUA_CHAVE_GEMINI_AQUI') {
+    throw new Error('Edite GEMINI_API_KEY no topo do Code.gs antes de executar.');
   }
-  PropertiesService.getScriptProperties().setProperty('GEMINI_API_KEY', key);
+  PropertiesService.getScriptProperties().setProperty('GEMINI_API_KEY', GEMINI_API_KEY);
   Logger.log('GEMINI_API_KEY configurada com sucesso.');
 }
 
 function getGeminiApiKey_() {
-  var key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  var props = PropertiesService.getScriptProperties();
+  var key = props.getProperty('GEMINI_API_KEY');
+  if (!key && GEMINI_API_KEY && GEMINI_API_KEY !== 'COLE_SUA_CHAVE_GEMINI_AQUI') {
+    key = GEMINI_API_KEY;
+    props.setProperty('GEMINI_API_KEY', key);
+  }
   if (!key) {
-    throw new Error('Configure GEMINI_API_KEY: execute configurarGeminiApiKey() no Apps Script.');
+    throw new Error(
+      'Chave Gemini ausente. Cole GEMINI_API_KEY no topo do Code.gs e faça Nova versão do Web App.'
+    );
   }
   return key;
 }
@@ -756,8 +766,25 @@ function parseGeminiJson_(text) {
 
 function callGeminiVision_(base64, mimeType, promptText) {
   var apiKey = getGeminiApiKey_();
+  var models = [GEMINI_MODEL, GEMINI_MODEL_FALLBACK];
+  var lastErr = '';
+
+  for (var m = 0; m < models.length; m++) {
+    try {
+      return callGeminiVisionModel_(apiKey, models[m], base64, mimeType, promptText);
+    } catch (e) {
+      lastErr = e.message || String(e);
+      if (lastErr.indexOf('404') < 0 && lastErr.indexOf('not found') < 0) {
+        throw e;
+      }
+    }
+  }
+  throw new Error(lastErr || 'Erro ao chamar Gemini.');
+}
+
+function callGeminiVisionModel_(apiKey, model, base64, mimeType, promptText) {
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
-    GEMINI_MODEL + ':generateContent?key=' + apiKey;
+    model + ':generateContent?key=' + apiKey;
 
   var payload = {
     contents: [{
