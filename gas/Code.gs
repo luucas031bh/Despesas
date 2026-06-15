@@ -577,30 +577,150 @@ function handlerCriarOperacional_(d) {
 // ——— 7. RELATÓRIOS ———
 
 function handlerGetRelatorio_(area, de, ate) {
-  var rows = getAllRows_(SHEETS.LANCAMENTOS, COLS_LANCAMENTOS);
-  var meses = [];
-  var resumo = {};
+  de = normalizeMesRef_(de);
+  ate = normalizeMesRef_(ate);
+  var incluirCasa = !area || area === 'todas' || area === 'ambas' || area === 'casa';
+  var incluirAdny = !area || area === 'todas' || area === 'ambas' || area === 'adny';
+  var incluirOperacional = !area || area === 'todas' || area === 'ambas' || area === 'operacional';
 
-  rows.forEach(function (l) {
-    if (area && l.area !== area) return;
-    if (de && l.mes_ref < de) return;
-    if (ate && l.mes_ref > ate) return;
+  function emptyBucket() {
+    return { total: 0, pagas: 0, pendentes: 0, qtd: 0 };
+  }
 
-    if (meses.indexOf(l.mes_ref) < 0) meses.push(l.mes_ref);
-    if (!resumo[l.mes_ref]) {
-      resumo[l.mes_ref] = { mes_ref: l.mes_ref, total: 0, pagas: 0, pendentes: 0, qtd: 0 };
+  function ensureMes(resumo, mesRef) {
+    if (!resumo[mesRef]) {
+      resumo[mesRef] = {
+        mes_ref: mesRef,
+        total: 0,
+        pagas: 0,
+        pendentes: 0,
+        qtd: 0,
+        casa: emptyBucket(),
+        adny: emptyBucket(),
+        operacional: emptyBucket()
+      };
     }
-    var v = Number(l.valor) || 0;
-    var st = calcularStatusLanc_(l);
-    resumo[l.mes_ref].total += v;
-    resumo[l.mes_ref].qtd += 1;
-    if (st === 'pago') resumo[l.mes_ref].pagas += v;
-    else resumo[l.mes_ref].pendentes += v;
+    return resumo[mesRef];
+  }
+
+  function addLancamento(bucket, fonte, valor, st) {
+    bucket.total += valor;
+    bucket.qtd += 1;
+    if (st === 'pago') bucket.pagas += valor;
+    else bucket.pendentes += valor;
+    bucket[fonte].total += valor;
+    bucket[fonte].qtd += 1;
+    if (st === 'pago') bucket[fonte].pagas += valor;
+    else bucket[fonte].pendentes += valor;
+  }
+
+  var resumoMeses = {};
+  var itens = [];
+  var resumoGeral = {
+    total: 0,
+    pagas: 0,
+    pendentes: 0,
+    qtd: 0,
+    casa: emptyBucket(),
+    adny: emptyBucket(),
+    operacional: emptyBucket()
+  };
+
+  if (incluirCasa || incluirAdny) {
+    var lancs = getAllRows_(SHEETS.LANCAMENTOS, COLS_LANCAMENTOS);
+    lancs.forEach(function (l) {
+      var mesRef = normalizeMesRef_(l.mes_ref);
+      if (!mesRef) return;
+      if (de && mesRef < de) return;
+      if (ate && mesRef > ate) return;
+
+      var fonte = l.area === 'adny' ? 'adny' : 'casa';
+      if (fonte === 'casa' && !incluirCasa) return;
+      if (fonte === 'adny' && !incluirAdny) return;
+
+      var v = Number(l.valor) || 0;
+      var st = calcularStatusLanc_(l);
+      var bucket = ensureMes(resumoMeses, mesRef);
+      addLancamento(bucket, fonte, v, st);
+
+      resumoGeral.total += v;
+      resumoGeral.qtd += 1;
+      if (st === 'pago') resumoGeral.pagas += v;
+      else resumoGeral.pendentes += v;
+      resumoGeral[fonte].total += v;
+      resumoGeral[fonte].qtd += 1;
+      if (st === 'pago') resumoGeral[fonte].pagas += v;
+      else resumoGeral[fonte].pendentes += v;
+
+      itens.push({
+        id: l.id,
+        fonte: fonte,
+        area: l.area,
+        nome: l.nome,
+        categoria: l.categoria,
+        mes_ref: mesRef,
+        data: l.data_vencimento || '',
+        valor: v,
+        status: st
+      });
+    });
+  }
+
+  if (incluirOperacional) {
+    var ops = getAllRows_(SHEETS.OPERACIONAL_DIARIO, COLS_OPERACIONAL);
+    ops.forEach(function (o) {
+      var data = normalizeDataISO_(o.data);
+      if (!data) return;
+      var mesRef = data.substring(0, 7);
+      if (de && mesRef < de) return;
+      if (ate && mesRef > ate) return;
+
+      var v = Number(o.valor) || 0;
+      var bucket = ensureMes(resumoMeses, mesRef);
+      bucket.total += v;
+      bucket.pagas += v;
+      bucket.qtd += 1;
+      bucket.operacional.total += v;
+      bucket.operacional.pagas += v;
+      bucket.operacional.qtd += 1;
+
+      resumoGeral.total += v;
+      resumoGeral.pagas += v;
+      resumoGeral.qtd += 1;
+      resumoGeral.operacional.total += v;
+      resumoGeral.operacional.pagas += v;
+      resumoGeral.operacional.qtd += 1;
+
+      itens.push({
+        id: o.id,
+        fonte: 'operacional',
+        area: 'operacional',
+        nome: o.descricao || o.categoria || 'Gasto rápido',
+        categoria: o.categoria,
+        mes_ref: mesRef,
+        data: data,
+        valor: v,
+        status: 'pago'
+      });
+    });
+  }
+
+  var meses = Object.keys(resumoMeses).sort().map(function (m) { return resumoMeses[m]; });
+
+  itens.sort(function (a, b) {
+    var da = (a.data || a.mes_ref || '').toString();
+    var db = (b.data || b.mes_ref || '').toString();
+    return db.localeCompare(da);
   });
 
-  meses.sort();
-  var lista = meses.map(function (m) { return resumo[m]; });
-  return { area: area, de: de, ate: ate, meses: lista };
+  return {
+    area: area || 'todas',
+    de: de,
+    ate: ate,
+    resumo: resumoGeral,
+    meses: meses,
+    itens: itens
+  };
 }
 
 function handlerGetConfig_() {

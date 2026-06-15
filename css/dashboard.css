@@ -381,6 +381,73 @@
   text-align: right;
 }
 
+.relatorio-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.relatorio-resumo-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+.relatorio-resumo-card--total {
+  grid-column: 1 / -1;
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+}
+
+.relatorio-resumo-card__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.relatorio-resumo-card__valor {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.relatorio-resumo-card__sub {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.relatorio-section-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+.badge--fonte {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge--fonte-casa {
+  background: var(--color-casa-bg, #e8f5e9);
+  color: var(--color-casa);
+}
+
+.badge--fonte-adny {
+  background: rgba(128, 0, 32, 0.1);
+  color: var(--color-adny);
+}
+
+.badge--fonte-operacional {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
 .boleto-file-inputs-sr {
   position: absolute;
   width: 1px;
