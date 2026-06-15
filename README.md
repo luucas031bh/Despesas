@@ -55,7 +55,16 @@ Se aparecer erro de **UrlFetchApp.fetch** / **script.external_request**: atualiz
 
 ## Abas da planilha
 
-`MODELOS`, `LANCAMENTOS`, `OPERACIONAL_DIARIO`, `CONFIG`, `HISTORICO_FECHAMENTOS`
+`MODELOS`, `LANCAMENTOS`, `OPERACIONAL_DIARIO`, `CONFIG`, `HISTORICO_FECHAMENTOS`, **`FORNECEDORES`**
+
+### Fornecedores (terceirizados)
+
+- Página: **`fornecedores.html`** (mesma API GAS e mesma planilha)
+- Tipos: **costura**, **bordado**, **silk**, **dtf**
+- Campos gerais na aba + **`dados_json`** (peças, tamanhos, matriz silk, DTF)
+- Após atualizar o `Code.gs`, rode **`setupBancoDeDados`** ou abra o app (cria a aba automaticamente)
+
+API: `getFornecedores`, `getFornecedor`, `criarFornecedor`, `editarFornecedor`, `excluirFornecedor`
 
 ## Versão
 

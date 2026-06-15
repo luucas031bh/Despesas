@@ -110,6 +110,13 @@ const API = (function () {
   const gerarLancamentos = (mes_ref) => post('gerarLancamentos', { mes_ref });
   const repairGerar = (mes_ref) => post('repairGerar', { mes_ref });
 
+  /* ——— Fornecedores ——— */
+  const getFornecedores = (tipo) => get({ action: 'getFornecedores', tipo: tipo || '' });
+  const getFornecedor = (id) => get({ action: 'getFornecedor', id });
+  const criarFornecedor = (dados) => post('criarFornecedor', dados);
+  const editarFornecedor = (dados) => post('editarFornecedor', dados);
+  const excluirFornecedor = (id) => post('excluirFornecedor', { id });
+
   /* ——— Leitor de boletos (Gemini) ——— */
   const lerBoleto = (dados) => post('lerBoleto', dados, CONFIG.BOLETO_API_TIMEOUT);
   const refinarBoleto = (dados) =>
@@ -136,6 +143,11 @@ const API = (function () {
     fecharMes,
     gerarLancamentos,
     repairGerar,
+    getFornecedores,
+    getFornecedor,
+    criarFornecedor,
+    editarFornecedor,
+    excluirFornecedor,
     lerBoleto,
     refinarBoleto,
   };

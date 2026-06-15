@@ -26,7 +26,8 @@ var SHEETS = {
   LANCAMENTOS: 'LANCAMENTOS',
   OPERACIONAL_DIARIO: 'OPERACIONAL_DIARIO',
   CONFIG: 'CONFIG',
-  HISTORICO_FECHAMENTOS: 'HISTORICO_FECHAMENTOS'
+  HISTORICO_FECHAMENTOS: 'HISTORICO_FECHAMENTOS',
+  FORNECEDORES: 'FORNECEDORES'
 };
 
 var COLS_MODELOS = [
@@ -54,6 +55,14 @@ var COLS_HISTORICO = [
   'id', 'mes_ref', 'area', 'total_despesas', 'total_pagas',
   'total_pendentes', 'fechado_em', 'observacoes'
 ];
+
+/** Terceirizados: costura, bordado, silk, dtf — dados específicos em dados_json */
+var COLS_FORNECEDORES = [
+  'id', 'nome', 'telefone', 'endereco', 'tipo', 'dados_json', 'ativo',
+  'criado_em', 'atualizado_em'
+];
+
+var TIPOS_FORNECEDOR_ = ['costura', 'bordado', 'silk', 'dtf'];
 
 // ——— 2. UTILITÁRIOS INTERNOS ———
 
@@ -400,6 +409,16 @@ function rotear_(action, params, body) {
       return respostaOk_(handlerLerBoleto_(body));
     case 'refinarBoleto':
       return respostaOk_(handlerRefinarBoleto_(body));
+    case 'getFornecedores':
+      return respostaOk_(handlerGetFornecedores_(params.tipo));
+    case 'getFornecedor':
+      return respostaOk_(handlerGetFornecedor_(params.id));
+    case 'criarFornecedor':
+      return respostaOk_(handlerCriarFornecedor_(body));
+    case 'editarFornecedor':
+      return respostaOk_(handlerEditarFornecedor_(body));
+    case 'excluirFornecedor':
+      return respostaOk_(handlerExcluirFornecedor_(body.id));
     default:
       return respostaErro_('Ação inválida: ' + action, 'ACAO_INVALIDA');
   }
@@ -944,6 +963,7 @@ function inicializarBanco_() {
   criarAbaSeNaoExiste_(ss, SHEETS.OPERACIONAL_DIARIO, COLS_OPERACIONAL);
   criarAbaSeNaoExiste_(ss, SHEETS.CONFIG, COLS_CONFIG);
   criarAbaSeNaoExiste_(ss, SHEETS.HISTORICO_FECHAMENTOS, COLS_HISTORICO);
+  criarAbaSeNaoExiste_(ss, SHEETS.FORNECEDORES, COLS_FORNECEDORES);
   seedConfig_();
 }
 
@@ -1015,7 +1035,116 @@ function setupBancoDeDados() {
   Logger.log('Banco inicializado — abas criadas em ' + SPREADSHEET_NAME);
 }
 
-// ——— 11. LEITOR DE BOLETOS (GEMINI) ———
+// ——— 11. FORNECEDORES (terceirizados) ———
+
+function buildDadosJsonFornecedor_(d) {
+  var obj = {};
+  if (d.pecas) obj.pecas = d.pecas;
+  if (d.tamanhos) obj.tamanhos = d.tamanhos;
+  if (d.silk) obj.silk = d.silk;
+  if (d.qualidadeSilk) obj.qualidadeSilk = d.qualidadeSilk;
+  if (d.dtf) obj.dtf = d.dtf;
+  return JSON.stringify(obj);
+}
+
+function parseFornecedorRow_(row) {
+  var f = {
+    id: row.id,
+    nome: row.nome || '',
+    telefone: row.telefone || '',
+    endereco: row.endereco || '',
+    tipo: row.tipo || 'costura',
+    ativo: boolVal_(row.ativo),
+    criado_em: row.criado_em || '',
+    atualizado_em: row.atualizado_em || ''
+  };
+  if (row.dados_json) {
+    try {
+      var extra = JSON.parse(String(row.dados_json));
+      if (extra.pecas) f.pecas = extra.pecas;
+      if (extra.tamanhos) f.tamanhos = extra.tamanhos;
+      if (extra.silk) f.silk = extra.silk;
+      if (extra.qualidadeSilk) f.qualidadeSilk = extra.qualidadeSilk;
+      if (extra.dtf) f.dtf = extra.dtf;
+    } catch (e) {
+      /* dados_json inválido — mantém campos gerais */
+    }
+  }
+  return f;
+}
+
+function validarTipoFornecedor_(tipo) {
+  if (TIPOS_FORNECEDOR_.indexOf(tipo) < 0) {
+    throw new Error('Tipo de fornecedor inválido. Use: costura, bordado, silk ou dtf.');
+  }
+}
+
+function handlerGetFornecedores_(tipo) {
+  var rows = getAllRows_(SHEETS.FORNECEDORES, COLS_FORNECEDORES);
+  return rows
+    .filter(function (r) {
+      if (!boolVal_(r.ativo)) return false;
+      if (tipo && tipo !== 'todos' && r.tipo !== tipo) return false;
+      return true;
+    })
+    .map(parseFornecedorRow_);
+}
+
+function handlerGetFornecedor_(id) {
+  var rows = getAllRows_(SHEETS.FORNECEDORES, COLS_FORNECEDORES);
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].id === id) return parseFornecedorRow_(rows[i]);
+  }
+  throw new Error('Fornecedor não encontrado');
+}
+
+function handlerCriarFornecedor_(d) {
+  if (!d || !d.nome) throw new Error('Informe o nome do fornecedor.');
+  var tipo = d.tipo || 'costura';
+  validarTipoFornecedor_(tipo);
+  var now = nowISO_();
+  var obj = {
+    id: d.id || ('forn_' + new Date().getTime()),
+    nome: String(d.nome).trim(),
+    telefone: d.telefone || '',
+    endereco: d.endereco || '',
+    tipo: tipo,
+    dados_json: buildDadosJsonFornecedor_(d),
+    ativo: 'TRUE',
+    criado_em: now,
+    atualizado_em: now
+  };
+  appendRow_(SHEETS.FORNECEDORES, COLS_FORNECEDORES, obj);
+  return parseFornecedorRow_(obj);
+}
+
+function handlerEditarFornecedor_(d) {
+  if (!d || !d.id) throw new Error('ID do fornecedor é obrigatório.');
+  var tipo = d.tipo || 'costura';
+  validarTipoFornecedor_(tipo);
+  var updates = {
+    nome: String(d.nome || '').trim(),
+    telefone: d.telefone || '',
+    endereco: d.endereco || '',
+    tipo: tipo,
+    dados_json: buildDadosJsonFornecedor_(d),
+    atualizado_em: nowISO_()
+  };
+  if (!updates.nome) throw new Error('Informe o nome do fornecedor.');
+  updateRowById_(SHEETS.FORNECEDORES, COLS_FORNECEDORES, d.id, updates);
+  return handlerGetFornecedor_(d.id);
+}
+
+function handlerExcluirFornecedor_(id) {
+  if (!id) throw new Error('ID do fornecedor é obrigatório.');
+  updateRowById_(SHEETS.FORNECEDORES, COLS_FORNECEDORES, id, {
+    ativo: 'FALSE',
+    atualizado_em: nowISO_()
+  });
+  return { id: id, ativo: false };
+}
+
+// ——— 12. LEITOR DE BOLETOS (GEMINI) ———
 
 var GEMINI_MODEL = 'gemini-2.0-flash';
 var GEMINI_MODEL_FALLBACK = 'gemini-1.5-flash';
